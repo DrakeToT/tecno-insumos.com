@@ -1,0 +1,14 @@
+/* Animación de los iconos del Navbar */
+.icon-link-hover {
+    --bs-icon-link-transform: translate3d(0, -.125rem, 0)
+}
+
+/* Avatares circulares reutilizables */
+img.avatar {
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+img.avatar-sm { width: 35px; height: 35px; }
+img.avatar-md { width: 75px; height: 75px; }
+img.avatar-lg { width: 200px; height: 200px; }

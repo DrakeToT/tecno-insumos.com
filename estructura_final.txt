@@ -1,0 +1,98 @@
+Listado de rutas de carpetas
+El número de serie del volumen es C88D-C3AA
+C:.
+¦   .htaccess
+¦   estructura_actual.txt
+¦   estructura_final.txt
+¦   index.php
+¦   
++---public
+¦   ¦   .htaccess
+¦   ¦   home.php
+¦   ¦   index.php
+¦   ¦   test-db.php
+¦   ¦   
+¦   +---api
+¦   ¦       index.php
+¦   ¦       
+¦   +---assets
+¦       +---css
+¦       ¦       navbar.css
+¦       ¦       perfil.css
+¦       ¦       
+¦       +---img
+¦       ¦       AnalyticsGraph.gif
+¦       ¦       AnalyticsLaptop.gif
+¦       ¦       AnalyticsPeople.gif
+¦       ¦       perfil.jpg
+¦       ¦       perfil.webp
+¦       ¦       perfil_defeut.webp
+¦       ¦       
+¦       +---js
+¦       ¦       login.js
+¦       ¦       perfil.js
+¦       ¦       users.js
+¦       ¦       
+¦       +---uploads
+¦               perfil_11760833751.gif
+¦               perfil_11760857987.gif
+¦               perfil_11761252525.gif
+¦               perfil_5_1761591572.jpg
+¦               
++---src
+    ¦   .htaccess
+    ¦   
+    +---config
+    ¦       base-url.php
+    ¦       database.php
+    ¦       menu.php
+    ¦       
+    +---controllers
+    ¦       AuthController.php
+    ¦       ProfileController.php
+    ¦       UserController.php
+    ¦       
+    +---helpers
+    ¦       profile-image.php
+    ¦       sanitize.php
+    ¦       session.php
+    ¦       test-input.php
+    ¦       
+    +---models
+    ¦       RoleModel.php
+    ¦       UserModel.php
+    ¦       
+    +---tests
+    ¦       conexion-db.php
+    ¦       
+    +---views
+        +---auth
+        ¦       logout.php
+        ¦       modal-login.php
+        ¦       
+        +---configuracion
+        +---dashboard
+        ¦       index.php
+        ¦       
+        +---layouts
+        ¦   ¦   footer.php
+        ¦   ¦   header.php
+        ¦   ¦   navbar.php
+        ¦   ¦   
+        ¦   +---modals
+        ¦   ¦       modal-confirm.php
+        ¦   ¦       modal-message.php
+        ¦   ¦       modal-password.php
+        ¦   ¦       modal-user-form.php
+        ¦   ¦       
+        ¦   +---templates
+        ¦           template-user-row.php
+        ¦           
+        +---perfil
+        ¦       index.php
+        ¦       
+        +---roles
+        +---stock
+        +---usuarios
+                index.php
+                

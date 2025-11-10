@@ -1,0 +1,13 @@
+# ==============================
+# Tecno Insumos - Protección del código fuente
+# Ubicación: /Tecno Insumos/src/.htaccess
+# ==============================
+
+# Negar acceso directo desde el navegador
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

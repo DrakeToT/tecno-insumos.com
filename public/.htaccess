@@ -1,0 +1,27 @@
+# ===============================================
+# Tecno Insumos - Enrutamiento y seguridad pública
+# ===============================================
+
+# Habilitar mod_rewrite
+RewriteEngine On
+
+# Ruta base (IMPORTANTE: escapada por el espacio)
+RewriteBase "/tecno-insumos.com/public/"
+
+# Evitar reescritura de archivos o carpetas reales
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirigir todo al index.php (router central)
+RewriteRule ^(.*)$ index.php?route=$1 [L,QSA]
+
+# ===============================================
+# Seguridad y buenas prácticas
+# ===============================================
+
+# No permitir listado de directorios
+Options -Indexes
+
+# Manejo de errores PHP (solo durante desarrollo)
+php_flag display_errors On
+php_value error_reporting E_ALL

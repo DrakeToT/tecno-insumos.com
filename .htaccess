@@ -1,0 +1,19 @@
+# ==============================
+# Tecno Insumos - Redirección al directorio público
+# ==============================
+
+RewriteEngine On
+
+# Ruta base (adaptada a tu carpeta real)
+RewriteBase "/tecno-insumos.com/"
+
+# Permitir el acceso a esta carpeta (previene 403)
+Options +FollowSymLinks -Indexes
+
+# Si NO estamos en /public, redirigir allí
+RewriteCond %{REQUEST_URI} !^/tecno-insumos.com/public/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirigir automáticamente a /public/
+RewriteRule ^(.*)$ public/ [L,R=302]
