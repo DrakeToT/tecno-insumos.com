@@ -1,7 +1,8 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../helpers/session.php';
+require_once __DIR__ . '/../models/RoleModel.php';
 require_once __DIR__ . '/../helpers/sanitize.php';
+require_once __DIR__ . '/../helpers/session.php';
+require_once __DIR__ . '/../helpers/permisos.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -9,7 +10,7 @@ header('Content-Type: application/json; charset=utf-8');
 // Validar sesión
 // =========================
 if (!isUserLoggedIn()) {
-    http_response_code(403);
+    http_response_code(401);
     echo json_encode(["success" => false, "message" => "Acceso no autorizado."]);
     exit;
 }
@@ -24,21 +25,23 @@ if ((int)$idRol !== 1) {
     exit;
 }
 
+$method = $_SERVER['REQUEST_METHOD'];
+$roleModel = new RoleModel();
+
 try {
-    $db = new Database();
-    $conn = $db->getConnection();
-
-    $method = $_SERVER['REQUEST_METHOD'];
-
+    
     switch ($method) {
 
         // ======================================
         // GET → Listar todos los roles
         // ======================================
         case 'GET':
-            $stmt = $conn->query("SELECT id, nombre, descripcion FROM roles ORDER BY nombre ASC");
-            $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+            if (!Permisos::tienePermiso('ver_roles', $idUsuario)) {
+                http_response_code(403);
+                echo json_encode(["success" => false, "message" => "No tiene permiso para ver roles."]);
+                exit;
+            }
+            $roles = $roleModel->getAll();
             echo json_encode(["success" => true, "roles" => $roles]);
             break;
 
@@ -46,6 +49,12 @@ try {
         // POST → Crear un nuevo rol
         // ======================================
         case 'POST':
+            if (!Permisos::tienePermiso('crear_roles', $idUsuario)) {
+                http_response_code(403);
+                echo json_encode(["success" => false, "message" => "No tiene permiso para crear roles."]);
+                exit;
+            }
+            
             $input = json_decode(file_get_contents("php://input"), true);
             $nombre = sanitizeInput($input['nombre'] ?? '');
             $descripcion = sanitizeInput($input['descripcion'] ?? '');
@@ -55,20 +64,9 @@ try {
                 exit;
             }
 
-            // Verificar duplicado
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM roles WHERE nombre = :nombre");
-            $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
-            $stmt->execute();
-            if ($stmt->fetchColumn() > 0) {
-                echo json_encode(["success" => false, "message" => "Ya existe un rol con ese nombre."]);
-                exit;
-            }
-
-            $stmt = $conn->prepare("INSERT INTO roles (nombre, descripcion) VALUES (:nombre, :descripcion)");
-            $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
-            $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
-            $success = $stmt->execute();
-
+            // NOTA: Verificar duplicado
+            
+            $success = $roleModel->create($nombre, $descripcion);
             echo json_encode([
                 "success" => $success,
                 "message" => $success ? "Rol creado correctamente." : "Error al crear el rol."
@@ -79,35 +77,28 @@ try {
         // PUT → Editar un rol existente
         // ======================================
         case 'PUT':
+            if (!Permisos::tienePermiso('editar_roles', $idUsuario)) {
+                http_response_code(403);
+                echo json_encode(["success" => false, "message" => "No tiene permiso para editar roles."]);
+                exit;
+            }
+
             $input = json_decode(file_get_contents("php://input"), true);
             $id = (int) ($input['id'] ?? 0);
             $nombre = sanitizeInput($input['nombre'] ?? '');
             $descripcion = sanitizeInput($input['descripcion'] ?? '');
 
             if ($id <= 0 || $nombre === '') {
-                echo json_encode(["success" => false, "message" => "Datos inválidos."]);
+                echo json_encode(["success" => false, "message" => "Datos incompletos para actualizar."]);
                 exit;
             }
 
-            // Verificar duplicado con otro rol
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM roles WHERE nombre = :nombre AND id != :id");
-            $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
-            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-            $stmt->execute();
-            if ($stmt->fetchColumn() > 0) {
-                echo json_encode(["success" => false, "message" => "Ya existe otro rol con ese nombre."]);
-                exit;
-            }
-
-            $stmt = $conn->prepare("UPDATE roles SET nombre = :nombre, descripcion = :descripcion WHERE id = :id");
-            $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
-            $stmt->bindParam(':descripcion', $descripcion, PDO::PARAM_STR);
-            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-            $success = $stmt->execute();
-
+            // NOTA: Verificar duplicado con otro rol
+            
+            $success = $roleModel->update($id, $nombre, $descripcion);
             echo json_encode([
                 "success" => $success,
-                "message" => $success ? "Rol actualizado correctamente." : "No se pudieron guardar los cambios."
+                "message" => $success ? "Rol actualizado correctamente." : "No se pudo actualizar el rol."
             ]);
             break;
 
@@ -115,30 +106,27 @@ try {
         // DELETE → Eliminar un rol
         // ======================================
         case 'DELETE':
+            if (!Permisos::tienePermiso('eliminar_roles', $idUsuario)) {
+                http_response_code(403);
+                echo json_encode(["success" => false, "message" => "No tiene permiso para eliminar roles."]);
+                exit;
+            }
+
             $input = json_decode(file_get_contents("php://input"), true);
             $id = (int) ($input['id'] ?? 0);
 
             if ($id <= 0) {
-                echo json_encode(["success" => false, "message" => "ID inválido."]);
+                echo json_encode(["success" => false, "message" => "ID de rol inválido."]);
                 exit;
             }
 
-            // Verificar si hay usuarios con ese rol antes de eliminarlo
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM usuarios WHERE idRol = :id");
-            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-            $stmt->execute();
-            if ($stmt->fetchColumn() > 0) {
-                echo json_encode([
-                    "success" => false,
-                    "message" => "No se puede eliminar el rol porque tiene usuarios asociados."
-                ]);
+            // Evita eliminar roles con usuarios asignados
+            if ($roleModel->hasUsers($id)) {
+                echo json_encode(["success" => false, "message" => "No se puede eliminar un rol con usuarios asignados."]);
                 exit;
             }
 
-            $stmt = $conn->prepare("DELETE FROM roles WHERE id = :id");
-            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-            $success = $stmt->execute();
-
+            $success = $roleModel->delete($id);
             echo json_encode([
                 "success" => $success,
                 "message" => $success ? "Rol eliminado correctamente." : "Error al eliminar el rol."
