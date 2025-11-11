@@ -30,23 +30,22 @@ class Permisos
         $bindPermisos = implode(',', array_map(function ($p, $k) {
             return ":permiso$k";
         }, $permisos, array_keys($permisos)));
-        $sql = "
-            SELECT 
-                1 
-            FROM 
-                permisos
-            INNER JOIN
-                roles_permisos
-                    ON
-                        roles_permisos.id_permiso = permisos.id
-            INNER JOIN
-                roles_usuarios
-                    ON
-                        roles_usuarios.id_rol = roles_permisos.id_rol
-            WHERE 
-                    roles_usuarios.id_usuario = :idUsuario 
-                AND permisos.nombre IN (" . $bindPermisos . ")
-            LIMIT 1;
+        $sql = "SELECT 
+                    1
+                FROM 
+                    permisos
+                INNER JOIN 
+                    rolesPermisos 
+                        ON 
+                            rolesPermisos.idPermiso = permisos.id
+                INNER JOIN 
+                    usuarios 
+                        ON 
+                            usuarios.idRol = rolesPermisos.idRol
+                WHERE 
+                    usuarios.id = :idUsuario
+                AND permisos.nombre IN ($bindPermisos)
+                LIMIT 1;
         ";
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':idUsuario', $idUsuario);
@@ -65,21 +64,20 @@ class Permisos
         if (is_null($idUsuario)) {
             return [];
         }
-        $sql = "
-            SELECT 
-                permisos.nombre
-            FROM 
-                permisos
-            INNER JOIN
-                roles_permisos
-                    ON
-                        roles_permisos.id_permiso = permisos.id
-            INNER JOIN
-                roles_usuarios
-                    ON
-                        roles_usuarios.id_rol = roles_permisos.id_rol
-            WHERE 
-                roles_usuarios.id_usuario = :idUsuario;
+        $sql = "SELECT 
+                    permisos.nombre
+                FROM 
+                    permisos
+                INNER JOIN
+                    rolesPermisos
+                        ON
+                            rolesPermisos.idPermiso = permisos.id
+                INNER JOIN
+                    usuarios
+                        ON
+                            usuarios.idRol = rolesPermisos.idRol
+                WHERE 
+                    roles_usuarios.id_usuario = :idUsuario;
         ";
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':idUsuario', $idUsuario);
@@ -95,17 +93,16 @@ class Permisos
         if (is_null($idUsuario)) {
             return [];
         }
-        $sql = "
-            SELECT 
-                roles.nombre
-            FROM 
-                roles
-            INNER JOIN
-                roles_usuarios
-                    ON
-                        roles_usuarios.id_rol = roles.id
-            WHERE 
-                roles_usuarios.id_usuario = :idUsuario;
+        $sql = "SELECT 
+                    roles.nombre
+                FROM 
+                    roles
+                INNER JOIN
+                    usuarios
+                        ON
+                            usuarios.idRol = roles.id
+                WHERE 
+                    usuarios.id = :idUsuario;
         ";
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':idUsuario', $idUsuario);
@@ -136,19 +133,18 @@ class Permisos
         $bindRoles = implode(',', array_map(function ($p, $k) {
             return ":rol$k";
         }, $roles, array_keys($roles)));
-        $sql = "
-            SELECT 
-                1 
-            FROM 
-                roles
-            INNER JOIN
-                roles_usuarios
-                    ON
-                        roles_usuarios.id_rol = roles.id
-            WHERE 
-                    roles_usuarios.id_usuario = :idUsuario 
-                AND roles.nombre IN (" . $bindRoles . ")
-            LIMIT 1;
+        $sql = "SELECT 
+                    1 
+                FROM 
+                    roles
+                INNER JOIN
+                    usuarios
+                        ON
+                            usuarios.idRol = roles.id
+                WHERE 
+                        usuarios.id = :idUsuario 
+                    AND roles.nombre IN ($bindRoles)
+                LIMIT 1;
         ";
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':idUsuario', $idUsuario);
