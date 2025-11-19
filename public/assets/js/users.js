@@ -15,26 +15,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // Variables para acciones
     let idUsuarioAccion = null;
     let tipoAccion = null;
-    
+
     // Variables para orden y paginación
     let currentSort = "id";
     let currentOrder = "asc";
-    
-    
+
+
     // Fución para mostrar modal de mensajes
     function mostrarMensaje(mensaje, titulo = "Error", estilo = "danger") {
         const modalBody = document.getElementById("modalMessageBody");
         const modalTitle = document.getElementById("modalMessageTitle");
         const modalHeader = document.getElementById("modalMessageHeader");
-        
+
         modalTitle.textContent = titulo;
         modalBody.innerHTML = mensaje;
         modalHeader.classList.remove("bg-danger", "bg-success", "bg-warning", "bg-info");
         modalHeader.classList.add(`bg-${estilo}`);
-        
+
         modals.message.show();
     }
-    
+
     // Función para actualizar íconos de orden en encabezados
     function actualizarIndicadoresOrden(sort, order) {
         // Ocultar todos
@@ -97,67 +97,80 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch("./api/index.php?action=roles");
             const data = await response.json();
 
-            if (data.success && Array.isArray(data.roles)) {
-                selectRol.innerHTML = `<option value="" disabled>Seleccione un rol</option>`;
-                data.roles.forEach(r => {
+            if (data.success && data.roles) {
+                option.textContent = "Seleccione un rol";
+                selectRol.innerHTML = "";
+                selectRol.appendChild(option);
+                if (Array.isArray(data.roles)) {
+                    data.roles.forEach(r => {
+                        option = document.createElement("option");
+                        option.value = r.id;
+                        option.textContent = r.nombre;
+                        if (selectedId && Number(selectedId) === Number(r.id)) {
+                            option.selected = true; // marcar el rol actual
+                        }
+                        selectRol.appendChild(option);
+                    });
+                } else {
                     option = document.createElement("option");
-                    option.value = r.id;
-                    option.textContent = r.nombre;
-                    if (selectedId && Number(selectedId) === Number(r.id)) {
+                    option.value = data.roles.id;
+                    option.textContent = data.roles.nombre;
+                    if (selectedId && Number(selectedId) === Number(data.roles.id)) {
                         option.selected = true; // marcar el rol actual
                     }
                     selectRol.appendChild(option);
-                });
+                }
             } else {
-                selectRol.innerHTML = `<option disabled>No se pudieron cargar roles</option>`;
+                option.textContent = "No se pudieron cargar los roles";
+                selectRol.innerHTML = "";
+                selectRol.appendChild(option);
             }
         } catch (err) {
             console.error("Error cargando roles:", err);
-            selectRol.innerHTML = `<option disabled>Error al cargar roles</option>`;
         }
     }
 
-    
+
     // Función para renderizar la tabla
     function renderUsuarios(usuarios) {
         tablaUsuariosEl.innerHTML = "";
-        
+
         const templateRow = document.getElementById("userRowTemplate");
         const templateEmpty = document.getElementById("userRowNullTemplate");
-        
+
         // Si no hay resultados
         if (!usuarios.length) {
             const emptyClone = templateEmpty.content.cloneNode(true);
             tablaUsuariosEl.appendChild(emptyClone);
             return;
         }
-        
+
         // Si hay usuarios
         usuarios.forEach(u => {
             const clone = templateRow.content.cloneNode(true);
             const row = clone.querySelector("tr");
-            
+
             row.dataset.id = u.id;
             row.querySelector(".id").textContent = u.id;
             row.querySelector(".nombre").textContent = u.nombre;
             row.querySelector(".apellido").textContent = u.apellido;
             row.querySelector(".email").textContent = u.email;
             row.querySelector(".rol").textContent = u.rol;
-            
+
             const estadoBadge = row.querySelector(".estado .badge");
             estadoBadge.textContent = u.estado;
             estadoBadge.classList.toggle("bg-success", u.estado === "Activo");
             estadoBadge.classList.toggle("bg-secondary", u.estado !== "Activo");
-            
-            
+
+
             tablaUsuariosEl.appendChild(clone);
         });
     }
-    
+
     function renderPaginacion(pagination) {
         const container = document.getElementById("paginationContainer");
         container.innerHTML = "";
-        
+
         for (let i = 1; i <= pagination.totalPages; i++) {
             const btn = document.createElement("button");
             btn.textContent = i;
@@ -168,11 +181,11 @@ document.addEventListener("DOMContentLoaded", () => {
             container.appendChild(btn);
         }
     }
-    
+
     // Función para mostrar modal de formulario de usuario
     function mostrarUserForm(modo) {
         if (!modo) return;
-        
+
         const icon = document.getElementById('modalTitleIcon');
         const title = document.getElementById('modalTitle');
         const textNode = document.createTextNode('');
