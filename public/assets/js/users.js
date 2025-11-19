@@ -85,7 +85,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cargar roles dinámicamente
     async function cargarRoles(selectedId = null) {
         const selectRol = document.getElementById("rolUsuario");
-        selectRol.innerHTML = `<option value="" disabled selected>Cargando roles...</option>`;
+        let option = document.createElement('option');
+        option.value = "";
+        option.disabled = true;
+        option.selected = true;
+        option.textContent = "Cargando Roles ...";
+        selectRol.innerHTML = "";
+        selectRol.appendChild(option);
 
         try {
             const response = await fetch("./api/index.php?action=roles");
@@ -94,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data.success && Array.isArray(data.roles)) {
                 selectRol.innerHTML = `<option value="" disabled>Seleccione un rol</option>`;
                 data.roles.forEach(r => {
-                    const option = document.createElement("option");
+                    option = document.createElement("option");
                     option.value = r.id;
                     option.textContent = r.nombre;
                     if (selectedId && Number(selectedId) === Number(r.id)) {
