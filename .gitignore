@@ -416,3 +416,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Ignorar los archivos dentro de /uploads
+/public/assets/uploads/*
