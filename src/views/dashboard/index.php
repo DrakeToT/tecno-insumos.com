@@ -48,7 +48,7 @@ $extra_js  = [];
                 <?php if ($user['rol']['nombre'] === 'Administrador'): ?>
                     <div class="col">
                         <a href="<?php echo BASE_URL; ?>/usuarios" class="card h-100 shadow-sm text-decoration-none text-dark">
-                            <div class="card-body text-center">
+                            <div class="card-body text-center btn btn-outline-light border-0">
                                 <i class="bi bi-people fs-1 text-primary"></i>
                                 <h5 class="mt-2">Gestión de Usuarios</h5>
                             </div>
@@ -56,7 +56,7 @@ $extra_js  = [];
                     </div>
                     <div class="col">
                         <a href="<?php echo BASE_URL; ?>/roles" class="card h-100 shadow-sm text-decoration-none text-dark">
-                            <div class="card-body text-center">
+                            <div class="card-body text-center btn btn-outline-light border-0">
                                 <i class="bi bi-ui-radios fs-1 text-success"></i>
                                 <h5 class="mt-2">Roles y Permisos</h5>
                             </div>
@@ -64,7 +64,7 @@ $extra_js  = [];
                     </div>
                     <div class="col">
                         <a href="<?php echo BASE_URL; ?>/configuracion" class="card h-100 shadow-sm text-decoration-none text-dark">
-                            <div class="card-body text-center">
+                            <div class="card-body text-center btn btn-outline-light border-0">
                                 <i class="bi bi-gear fs-1 text-secondary"></i>
                                 <h5 class="mt-2">Configuración</h5>
                             </div>
@@ -74,7 +74,7 @@ $extra_js  = [];
                 <?php elseif ($user['rol']['nombre'] === 'Encargado de Stock'): ?>
                     <div class="col">
                         <a href="<?php echo BASE_URL; ?>/inventario" class="card h-100 shadow-sm text-decoration-none text-dark">
-                            <div class="card-body text-center">
+                            <div class="card-body text-center btn btn-outline-light border-0">
                                 <i class="bi bi-box-seam fs-1 text-warning"></i>
                                 <h5 class="mt-2">Gestión de Inventario</h5>
                             </div>
@@ -84,7 +84,7 @@ $extra_js  = [];
                 <?php elseif ($user['rol']['nombre'] === 'Soporte Técnico'): ?>
                     <div class="col">
                         <a href="<?php echo BASE_URL; ?>/tickets" class="card h-100 shadow-sm text-decoration-none text-dark">
-                            <div class="card-body text-center">
+                            <div class="card-body text-center btn btn-outline-light border-0">
                                 <i class="bi bi-tools fs-1 text-danger"></i>
                                 <h5 class="mt-2">Casos de Soporte</h5>
                             </div>
@@ -94,7 +94,7 @@ $extra_js  = [];
                 <?php elseif ($user['rol']['nombre'] === 'Coordinador IT'): ?>
                     <div class="col">
                         <a href="<?php echo BASE_URL; ?>/reportes" class="card h-100 shadow-sm text-decoration-none text-dark">
-                            <div class="card-body text-center">
+                            <div class="card-body text-center btn btn-outline-light border-0">
                                 <i class="bi bi-graph-up fs-1 text-info"></i>
                                 <h5 class="mt-2">Reportes Generales</h5>
                             </div>
@@ -105,7 +105,7 @@ $extra_js  = [];
                 <!-- Común a todos -->
                 <div class="col">
                     <a href="<?php echo BASE_URL; ?>/perfil" class="card h-100 shadow-sm text-decoration-none text-dark">
-                        <div class="card-body text-center">
+                        <div class="card-body text-center btn btn-outline-light border-0">
                             <i class="bi bi-person-circle fs-1 text-dark"></i>
                             <h5 class="mt-2">Mi Perfil</h5>
                         </div>
