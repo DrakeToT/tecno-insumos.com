@@ -1,7 +1,5 @@
 <?php
 
-// namespace clases;
-
 require_once __DIR__ . '/../config/database.php';
 
 class Permisos
