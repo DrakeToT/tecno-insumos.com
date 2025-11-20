@@ -11,45 +11,53 @@ class RoleModel
         $this->conn = $db->getConnection();
     }
 
-    // =====================================================
-    // Obtener todos los roles
-    // =====================================================
+    /**
+     * Obtener todos los roles
+     */
     public function getAll()
     {
-        $sql = "SELECT id, nombre, descripcion FROM roles ORDER BY id ASC";
+        $sql = "SELECT id, nombre, descripcion, estado FROM roles ORDER BY id ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // =====================================================
-    // Crear nuevo rol
-    // =====================================================
+    /**
+     * Crear rol
+     * El estado se establece automáticamente en la BD (DEFAULT 'Activo')
+     */
     public function create($nombre, $descripcion = null)
     {
         $sql = "INSERT INTO roles (nombre, descripcion) VALUES (:nombre, :descripcion)";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':nombre', $nombre);
-        $stmt->bindValue(':descripcion', $descripcion);
+        $stmt->bindValue(':nombre', $nombre, PDO::PARAM_STR);
+        $stmt->bindValue(':descripcion', $descripcion, PDO::PARAM_STR);
         return $stmt->execute();
     }
 
-    // =====================================================
-    // Actualizar rol existente
-    // =====================================================
-    public function update($id, $nombre, $descripcion = null)
+    /**
+     * Actualizar rol (incluye estado)
+     */
+    public function update($id, $nombre, $descripcion, $estado)
     {
-        $sql = "UPDATE roles SET nombre = :nombre, descripcion = :descripcion WHERE id = :id";
+        $sql = "
+            UPDATE roles
+            SET nombre = :nombre,
+                descripcion = :descripcion,
+                estado = :estado
+            WHERE id = :id
+        ";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->bindValue(':nombre', $nombre);
-        $stmt->bindValue(':descripcion', $descripcion);
+        $stmt->bindValue(':nombre', $nombre, PDO::PARAM_STR);
+        $stmt->bindValue(':descripcion', $descripcion, PDO::PARAM_STR);
+        $stmt->bindValue(':estado', $estado, PDO::PARAM_STR);
         return $stmt->execute();
     }
 
-    // =====================================================
-    // Eliminar rol
-    // =====================================================
+    /**
+     * Eliminar rol
+     */
     public function delete($id)
     {
         $sql = "DELETE FROM roles WHERE id = :id";
@@ -58,25 +66,24 @@ class RoleModel
         return $stmt->execute();
     }
 
-    // =====================================================
-    // Verificar si el rol tiene usuarios asignados
-    // =====================================================
+    /**
+     * Verificar si existen usuarios con el rol asignado
+     */
     public function hasUsers($idRol)
     {
-        $sql = "SELECT COUNT(*) as total FROM usuarios WHERE idRol = :idRol";
+        $sql = "SELECT COUNT(*) FROM usuarios WHERE idRol = :idRol";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':idRol', $idRol, PDO::PARAM_INT);
         $stmt->execute();
-        $count = $stmt->fetchColumn();
-        return $count > 0;
+        return $stmt->fetchColumn() > 0;
     }
 
-    // =====================================================
-    // Obtener un rol por ID (útil para editar)
-    // =====================================================
+    /**
+     * Obtener un rol por ID
+     */
     public function findById($id)
     {
-        $sql = "SELECT id, nombre, descripcion FROM roles WHERE id = :id";
+        $sql = "SELECT id, nombre, descripcion, estado FROM roles WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
