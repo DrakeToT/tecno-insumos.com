@@ -176,12 +176,20 @@ try {
 
             $success = $userModel->update($idUsuario, $data);
 
-            echo json_encode([
+            $response = [
                 "success" => $success,
                 "message" => $success
                     ? "Usuario actualizado correctamente."
                     : "No se pudieron guardar los cambios."
-            ]);
+            ];
+
+            // Actualiza la sesión si el usuario editado es el que está logueado
+            if ($success && $idUsuario === $user['id']) {
+                refreshUserSession($idUsuario);
+                $response["redirect"] = $_SERVER['HTTP_REFERER'] ?? BASE_URL;
+            }
+
+            echo json_encode($response);
             break;
 
         // =====================================================
@@ -199,13 +207,13 @@ try {
 
             // Cambiar estado (Activo/Inactivo)
             if ($accion === 'estado') {
-                
+
                 // Evitar cambiar el propio estado
                 if ($idUsuario === $user['id']) {
                     echo json_encode(["success" => false, "message" => "No puede cambiar el estado de su propio usuario."]);
                     exit;
                 }
-                
+
                 $nuevoEstado = sanitizeInput($input['estado'] ?? '');
                 if (!in_array($nuevoEstado, ['Activo', 'Inactivo'])) {
                     echo json_encode(["success" => false, "message" => "Estado inválido."]);

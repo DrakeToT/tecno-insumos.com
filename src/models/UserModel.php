@@ -204,20 +204,23 @@ class UserModel
      */
     public function countAll(string $search = ''): int
     {
-        $sql = "
-            SELECT COUNT(*) 
+        // Consulta del total de usuarios cuando el parámetro searche es vacio
+        if ($search === '') {
+            $sql = "SELECT COUNT(*) FROM usuarios";
+            $stmt = $this->conn->query($sql);
+            return (int) $stmt->fetchColumn();
+        }
+
+        // Consulta las coincidencias según el parámetro search 
+        $sql = 
+        "   SELECT COUNT(*) 
             FROM usuarios 
-            WHERE (
-                :search = '' OR
-                nombre LIKE :nombre OR
-                apellido LIKE :apellido OR
-                email LIKE :email
-            )
+            WHERE nombre LIKE :nombre 
+                OR apellido LIKE :apellido 
+                OR email LIKE :email
         ";
         $stmt = $this->conn->prepare($sql);
         $like = "%{$search}%";
-
-        $stmt->bindParam(':search', $search, PDO::PARAM_STR);
         $stmt->bindParam(':nombre', $like, PDO::PARAM_STR);
         $stmt->bindParam(':apellido', $like, PDO::PARAM_STR);
         $stmt->bindParam(':email', $like, PDO::PARAM_STR);
