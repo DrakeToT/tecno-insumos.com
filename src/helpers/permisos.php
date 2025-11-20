@@ -77,7 +77,7 @@ class Permisos
                         ON
                             usuarios.idRol = rolesPermisos.idRol
                 WHERE 
-                    roles_usuarios.id_usuario = :idUsuario;
+                    usuarios.id = :idUsuario;
         ";
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':idUsuario', $idUsuario);
