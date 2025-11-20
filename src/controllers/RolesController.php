@@ -16,6 +16,7 @@ if (!isUserLoggedIn()) {
 }
 
 $user = currentUser();
+$idUsuario = $user['id'];
 $idRol = $user['rol']['id'] ?? null;
 
 // Por ahora sólo el administrador (rol 1) puede gestionar roles

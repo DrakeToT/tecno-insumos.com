@@ -3,12 +3,12 @@ require_once __DIR__ . '/../config/database.php';
 
 class RoleModel
 {
-    private $conn;
+    private PDO $conn;
 
     public function __construct()
     {
-        global $conn;
-        $this->conn = $conn;
+        $db = new Database();
+        $this->conn = $db->getConnection();
     }
 
     // =====================================================

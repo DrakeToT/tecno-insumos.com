@@ -22,11 +22,11 @@ class Permisos
 
     public static function tieneAlgunPermiso($permisos, $idUsuario)
     {
-        /** @var \PDO $conn */
-        global $conn;
         if (is_null($permisos) || !is_array($permisos) || empty($permisos) || is_null($idUsuario)) {
             return false;
         }
+        $db = new Database();
+        $conn = $db->getConnection();
         $bindPermisos = implode(',', array_map(function ($p, $k) {
             return ":permiso$k";
         }, $permisos, array_keys($permisos)));
@@ -59,11 +59,11 @@ class Permisos
 
     public static function getPermisos($idUsuario)
     {
-        /** @var \PDO $conn */
-        global $conn;
         if (is_null($idUsuario)) {
             return [];
         }
+        $db = new Database();
+        $conn = $db->getConnection();
         $sql = "SELECT 
                     permisos.nombre
                 FROM 
@@ -88,11 +88,11 @@ class Permisos
 
     public static function getRoles($idUsuario)
     {
-        /** @var \PDO $conn */
-        global $conn;
         if (is_null($idUsuario)) {
             return [];
         }
+        $db = new Database();
+        $conn = $db->getConnection();
         $sql = "SELECT 
                     roles.nombre
                 FROM 
@@ -125,11 +125,11 @@ class Permisos
     }
     public static function esAlgunRol($roles, $idUsuario)
     {
-        /** @var \PDO $conn */
-        global $conn;
         if (is_null($roles) || !is_array($roles) || empty($roles) || is_null($idUsuario)) {
             return false;
         }
+        $db = new Database();
+        $conn = $db->getConnection();
         $bindRoles = implode(',', array_map(function ($p, $k) {
             return ":rol$k";
         }, $roles, array_keys($roles)));
