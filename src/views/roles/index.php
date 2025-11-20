@@ -8,50 +8,48 @@ if (!isUserLoggedIn()) {
     exit;
 }
 
-$titlePage = "Gestión de Roles";
+$titlePage = "Gestión de Roles - Tecno Insumos";
+$extra_js = ["/assets/js/roles.js"];
+$page = 'roles';
+
 require_once __DIR__ . '/../../views/layouts/header.php';
 require_once __DIR__ . '/../../views/layouts/navbar.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-ui-radios"></i> Gestión de Roles</h5>
+            <button class="btn btn-success btn-sm" id="btnNewUser">
+                <i class="bi bi-plus-circle"></i> Nuevo Rol
+            </button>
+        </div>
 
-    <!-- Encabezado -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-dark mb-0">
-            <i class="bi bi-person-gear me-2 text-primary"></i>Gestión de Roles
-        </h4>
-        <button id="btnNewRole" class="btn btn-success btn-sm">
-            <i class="bi bi-plus-circle"></i> Nuevo Rol
-        </button>
-    </div>
-
-    <!-- Buscador -->
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <input type="text" id="buscarRol" class="form-control form-control-sm" placeholder="Buscar rol...">
+        <div class="card-body">
+            <div class="mb-3 input-group ">
+                <span class="input-group-text border-dark-subtle"><i class="bi bi-search"></i></span>
+                <input type="text" id="buscarRol" class="border-dark-subtle focus-ring focus-ring-dark form-control" placeholder="Buscar rol...">
+            </div>
+        
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="tablaRoles">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="sortable" data-sort="id">ID <i class="bi bi-caret-up-fill text-warning"></i></th>
+                            <th class="sortable" data-sort="nombre">Nombre <i class="bi bi-caret-up-fill opacity-0 text-warning"></i></th>
+                            <th>Descripción</th>
+                            <th class="sortable" data-sort="estado">Estado <i class="bi bi-caret-up-fill opacity-0 text-warning"></i></th>
+                            <th class="text-center user-select-none text-nowrap">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        <!-- Cuerpo dinámico -->
+                    </tbody>
+                </table>
+            </div>
+            <nav id="paginationContainer" class="mt-3 d-flex justify-content-center"></nav>
         </div>
     </div>
-
-    <!-- Tabla de Roles -->
-    <div class="table-responsive">
-        <table class="table table-hover align-middle" id="tablaRoles">
-            <thead class="table-dark text-center">
-                <tr>
-                    <th class="sortable" data-sort="id">ID <i class="bi bi-caret-up-fill opacity-0"></i></th>
-                    <th class="sortable" data-sort="nombre">Nombre <i class="bi bi-caret-up-fill opacity-0"></i></th>
-                    <th>Descripción</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="text-center">
-                <!-- Cuerpo dinámico -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Paginación -->
-    <div class="d-flex justify-content-center mt-3" id="paginationContainer"></div>
-
 </div>
 
 <!-- =================== -->
@@ -143,7 +141,5 @@ require_once __DIR__ . '/../../views/layouts/navbar.php';
         <td colspan="4" class="text-muted py-3">No se encontraron roles.</td>
     </tr>
 </template>
-
-<script src="<?= BASE_URL ?>/public/assets/js/roles.js"></script>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
