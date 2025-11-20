@@ -33,6 +33,9 @@ function logout(): void {
  * Esto garantiza un formato consistente en toda la aplicación.
  */
 function buildUserSessionArray(array $userDb): array {
+    require_once __DIR__ . '/../helpers/permisos.php';
+    $permisosUsuario = Permisos::getPermisos($userDb['id']);
+
     return [
         'id'         => $userDb['id'],
         'nombre'     => $userDb['nombre'],
@@ -44,7 +47,8 @@ function buildUserSessionArray(array $userDb): array {
             'nombre' => $userDb['rol'] ?? null
         ],
         'fechaAlta'  => $userDb['fechaAlta'] ?? null,
-        'estado'     => $userDb['estado'] ?? null
+        'estado'     => $userDb['estado'] ?? null,
+        'permisos'   => $permisosUsuario,
     ];
 }
 

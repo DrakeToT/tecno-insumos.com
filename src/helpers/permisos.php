@@ -4,56 +4,73 @@ require_once __DIR__ . '/../config/database.php';
 
 class Permisos
 {
-
-    public static function tienePermiso($permiso, $idUsuario)
+    /**
+     * Función que verifica si el usuario en sesión tiene todos los permisos especificados. 
+    */
+    public static function tienePermiso($permisos)
     {
-        if (is_null($permiso) || is_null($idUsuario)) {
-            return false;
+        if (is_null($permisos)) return false;
+
+        if (!isset($_SESSION['user']['permisos']) || empty($_SESSION['user']['permisos']) || !is_array($_SESSION['user']['permisos'])) return false;
+
+        $userPerms = $_SESSION['user']['permisos'];
+
+        // Normalizar entrada a array
+        if (!is_array($permisos)) {
+            // soporta: "perm1 perm2", "perm1,perm2", "perm1, perm2"
+            $permisos = preg_split('/[\s,]+/', trim($permisos));
         }
-        if (!is_array($permiso)) {
-            $permisos = [$permiso];
-        } else {
-            $permisos = $permiso;
+
+        // Eliminar entradas vacías por si vienen "perm1  , ,  perm2"
+        $permisos = array_filter($permisos, fn($p) => trim($p) !== '');
+
+        // Verificar que tenga TODOS
+        foreach ($permisos as $permiso) {
+            if (!in_array($permiso, $userPerms)) {
+                return false;
+            }
         }
-        return self::tieneAlgunPermiso($permisos, $idUsuario);
+
+        return true;
     }
 
-    public static function tieneAlgunPermiso($permisos, $idUsuario)
+    /**
+     * Función que verifica si el usuario en sesión tiene al menos uno de los permisos especificados.
+    */
+    public static function tieneAlgunPermiso($permisos)
     {
-        if (is_null($permisos) || !is_array($permisos) || empty($permisos) || is_null($idUsuario)) {
+        if (is_null($permisos)) return false;
+
+        // Validar permisos del usuario en sesión
+        if (
+            !isset($_SESSION['user']['permisos']) ||
+            !is_array($_SESSION['user']['permisos'])
+        ) {
             return false;
         }
-        $db = new Database();
-        $conn = $db->getConnection();
-        $bindPermisos = implode(',', array_map(function ($p, $k) {
-            return ":permiso$k";
-        }, $permisos, array_keys($permisos)));
-        $sql = "SELECT 
-                    1
-                FROM 
-                    permisos
-                INNER JOIN 
-                    rolesPermisos 
-                        ON 
-                            rolesPermisos.idPermiso = permisos.id
-                INNER JOIN 
-                    usuarios 
-                        ON 
-                            usuarios.idRol = rolesPermisos.idRol
-                WHERE 
-                    usuarios.id = :idUsuario
-                AND permisos.nombre IN ($bindPermisos)
-                LIMIT 1;
-        ";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindValue(':idUsuario', $idUsuario);
-        array_walk($permisos, function ($p, $k) use ($stmt) {
-            $stmt->bindValue(":permiso$k", $p);
-        });
-        $stmt->execute();
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return !empty($result);
+
+        $userPerms = $_SESSION['user']['permisos'];
+
+        // Normalizar entrada a array
+        if (!is_array($permisos)) {
+            // soporta: "perm1 perm2", "perm1,perm2", "perm1, perm2"
+            $permisos = preg_split('/[\s,]+/', trim($permisos));
+        }
+
+        // Eliminar entradas vacías por si vienen "perm1  , ,  perm2"
+        $permisos = array_filter($permisos, fn($p) => trim($p) !== '');
+
+        // Verificar que tenga AL MENOS UNO
+        foreach ($permisos as $permiso) {
+            if (in_array($permiso, $userPerms)) {
+                return true;
+            }
+        }
+
+        return false;
     }
+
+
 
     public static function getPermisos($idUsuario)
     {
