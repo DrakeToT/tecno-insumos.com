@@ -52,7 +52,7 @@ function buildUserSessionArray(array $userDb): array {
  * Refresca la información del usuario en sesión con los datos actuales desde la base de datos.
  * Devuelve el nuevo array de sesión o null si el usuario no existe.
  */
-function refreshUserSession(PDO $conn, int $idUsuario): ?array {
+function refreshUserSession(int $idUsuario): ?array {
     require_once __DIR__ . '/../models/UserModel.php';
     $userModel = new UserModel();
 

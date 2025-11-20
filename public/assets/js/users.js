@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     //Elementos
-    const tablaUsuariosEl = document.getElementById("tablaUsuarios").querySelector("tbody");
-    const buscarUsuarioEl = document.getElementById("buscarUsuario");
+    const tbodyUsuarios = document.getElementById("tablaUsuarios").querySelector("tbody");
+    const inputBuscarUsuario = document.getElementById("buscarUsuario");
     const formUsuario = document.getElementById("formUsuario");
     const btnNewUser = document.getElementById("btnNewUser");
 
@@ -15,26 +15,27 @@ document.addEventListener("DOMContentLoaded", () => {
     // Variables para acciones
     let idUsuarioAccion = null;
     let tipoAccion = null;
-    
+
     // Variables para orden y paginación
     let currentSort = "id";
     let currentOrder = "asc";
-    
-    
+    let currentPage = 1;
+
+
     // Fución para mostrar modal de mensajes
     function mostrarMensaje(mensaje, titulo = "Error", estilo = "danger") {
         const modalBody = document.getElementById("modalMessageBody");
         const modalTitle = document.getElementById("modalMessageTitle");
         const modalHeader = document.getElementById("modalMessageHeader");
-        
+
         modalTitle.textContent = titulo;
         modalBody.innerHTML = mensaje;
         modalHeader.classList.remove("bg-danger", "bg-success", "bg-warning", "bg-info");
         modalHeader.classList.add(`bg-${estilo}`);
-        
+
         modals.message.show();
     }
-    
+
     // Función para actualizar íconos de orden en encabezados
     function actualizarIndicadoresOrden(sort, order) {
         // Ocultar todos
@@ -72,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Sincronizar estado global (por si vinieron params)
                 currentSort = sort;
                 currentOrder = order;
+                currentPage = data.pagination.currentPage;
                 // Actualizar íconos de orden
                 actualizarIndicadoresOrden(currentSort, currentOrder);
             } else {
@@ -85,88 +87,107 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cargar roles dinámicamente
     async function cargarRoles(selectedId = null) {
         const selectRol = document.getElementById("rolUsuario");
-        selectRol.innerHTML = `<option value="" disabled selected>Cargando roles...</option>`;
+        let option = document.createElement('option');
+        option.value = "";
+        option.disabled = true;
+        option.selected = true;
+        option.textContent = "Cargando Roles ...";
+        selectRol.innerHTML = "";
+        selectRol.appendChild(option);
 
         try {
             const response = await fetch("./api/index.php?action=roles");
             const data = await response.json();
 
-            if (data.success && Array.isArray(data.roles)) {
-                selectRol.innerHTML = `<option value="" disabled>Seleccione un rol</option>`;
-                data.roles.forEach(r => {
-                    const option = document.createElement("option");
-                    option.value = r.id;
-                    option.textContent = r.nombre;
-                    if (selectedId && Number(selectedId) === Number(r.id)) {
+            if (data.success && data.roles) {
+                option.textContent = "Seleccione un rol";
+                selectRol.innerHTML = "";
+                selectRol.appendChild(option);
+                if (Array.isArray(data.roles)) {
+                    data.roles.forEach(r => {
+                        option = document.createElement("option");
+                        option.value = r.id;
+                        option.textContent = r.nombre;
+                        if (selectedId && Number(selectedId) === Number(r.id)) {
+                            option.selected = true; // marcar el rol actual
+                        }
+                        selectRol.appendChild(option);
+                    });
+                } else {
+                    option = document.createElement("option");
+                    option.value = data.roles.id;
+                    option.textContent = data.roles.nombre;
+                    if (selectedId && Number(selectedId) === Number(data.roles.id)) {
                         option.selected = true; // marcar el rol actual
                     }
                     selectRol.appendChild(option);
-                });
+                }
             } else {
-                selectRol.innerHTML = `<option disabled>No se pudieron cargar roles</option>`;
+                option.textContent = "No se pudieron cargar los roles";
+                selectRol.innerHTML = "";
+                selectRol.appendChild(option);
             }
         } catch (err) {
             console.error("Error cargando roles:", err);
-            selectRol.innerHTML = `<option disabled>Error al cargar roles</option>`;
         }
     }
 
-    
+
     // Función para renderizar la tabla
     function renderUsuarios(usuarios) {
-        tablaUsuariosEl.innerHTML = "";
-        
+        tbodyUsuarios.innerHTML = "";
+
         const templateRow = document.getElementById("userRowTemplate");
         const templateEmpty = document.getElementById("userRowNullTemplate");
-        
+
         // Si no hay resultados
         if (!usuarios.length) {
             const emptyClone = templateEmpty.content.cloneNode(true);
-            tablaUsuariosEl.appendChild(emptyClone);
+            tbodyUsuarios.appendChild(emptyClone);
             return;
         }
-        
+
         // Si hay usuarios
         usuarios.forEach(u => {
             const clone = templateRow.content.cloneNode(true);
             const row = clone.querySelector("tr");
-            
+
             row.dataset.id = u.id;
             row.querySelector(".id").textContent = u.id;
             row.querySelector(".nombre").textContent = u.nombre;
             row.querySelector(".apellido").textContent = u.apellido;
             row.querySelector(".email").textContent = u.email;
             row.querySelector(".rol").textContent = u.rol;
-            
+
             const estadoBadge = row.querySelector(".estado .badge");
             estadoBadge.textContent = u.estado;
             estadoBadge.classList.toggle("bg-success", u.estado === "Activo");
             estadoBadge.classList.toggle("bg-secondary", u.estado !== "Activo");
-            
-            
-            tablaUsuariosEl.appendChild(clone);
+
+
+            tbodyUsuarios.appendChild(clone);
         });
     }
-    
+
     function renderPaginacion(pagination) {
         const container = document.getElementById("paginationContainer");
         container.innerHTML = "";
-        
+
         for (let i = 1; i <= pagination.totalPages; i++) {
             const btn = document.createElement("button");
             btn.textContent = i;
             btn.className = `btn btn-sm ${i === pagination.currentPage ? "btn-dark" : "btn-outline-dark"} mx-1`;
             btn.addEventListener("click", () => {
-                cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, i);
+                cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, i);
             });
             container.appendChild(btn);
         }
     }
-    
+
     // Función para mostrar modal de formulario de usuario
     function mostrarUserForm(modo) {
         if (!modo) return;
-        
+
         const icon = document.getElementById('modalTitleIcon');
         const title = document.getElementById('modalTitle');
         const textNode = document.createTextNode('');
@@ -209,10 +230,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Búsqueda dinámica con debounce
     let debounceTimer;
-    buscarUsuarioEl.addEventListener("input", () => {
+    inputBuscarUsuario.addEventListener("input", () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            const filtro = buscarUsuarioEl.value.trim();
+            const filtro = inputBuscarUsuario.value.trim();
             // Reset variables paginación
             currentSort = "id";
             currentOrder = "asc";
@@ -278,12 +299,16 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const data = await response.json();
-            mostrarMensaje(data.message, tipoAccion === 'editar' ? "Editar usuario" : "Nuevo usuario", data.success ? "success" : "warning");
+            mostrarMensaje(data.message, tipoAccion === 'editar' ? "Acción - Editar usuario" : "Nuevo usuario", data.success ? "success" : "warning");
 
             if (data.success) {
                 modals.userForm.hide();
                 formUsuario.reset();
-                cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, 1);
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, currentPage);
             }
         } catch (err) {
             mostrarMensaje("Error al guardar el usuario.", "danger");
@@ -376,7 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             modals.confirm.hide();
-            cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, 1);
+            cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, 1);
         } catch {
             mostrarMensaje("Error de conexión con el servidor.");
         } finally {
@@ -386,7 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Delegación de eventos en tabla
-    tablaUsuariosEl.addEventListener("click", e => {
+    tbodyUsuarios.addEventListener("click", e => {
         const fila = e.target.closest("tr");
         const id = fila?.dataset.id;
         if (!id) return;
@@ -425,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentOrder = newOrder;
 
             // Recargar usuarios ordenados
-            cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, 1);
+            cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, 1);
         });
     });
 
