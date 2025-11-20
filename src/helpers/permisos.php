@@ -81,7 +81,7 @@ class Permisos
         $stmt->bindValue(':idUsuario', $idUsuario);
         $stmt->execute();
         $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        return $result;
+        return array_column($result, 'nombre');
     }
 
     public static function getRoles($idUsuario)
