@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     //Elementos
-    const tablaUsuariosEl = document.getElementById("tablaUsuarios").querySelector("tbody");
-    const buscarUsuarioEl = document.getElementById("buscarUsuario");
+    const tbodyUsuarios = document.getElementById("tablaUsuarios").querySelector("tbody");
+    const inputBuscarUsuario = document.getElementById("buscarUsuario");
     const formUsuario = document.getElementById("formUsuario");
     const btnNewUser = document.getElementById("btnNewUser");
 
@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Variables para orden y paginación
     let currentSort = "id";
     let currentOrder = "asc";
+    let currentPage = 1;
 
 
     // Fución para mostrar modal de mensajes
@@ -72,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Sincronizar estado global (por si vinieron params)
                 currentSort = sort;
                 currentOrder = order;
+                currentPage = data.pagination.currentPage;
                 // Actualizar íconos de orden
                 actualizarIndicadoresOrden(currentSort, currentOrder);
             } else {
@@ -133,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Función para renderizar la tabla
     function renderUsuarios(usuarios) {
-        tablaUsuariosEl.innerHTML = "";
+        tbodyUsuarios.innerHTML = "";
 
         const templateRow = document.getElementById("userRowTemplate");
         const templateEmpty = document.getElementById("userRowNullTemplate");
@@ -141,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Si no hay resultados
         if (!usuarios.length) {
             const emptyClone = templateEmpty.content.cloneNode(true);
-            tablaUsuariosEl.appendChild(emptyClone);
+            tbodyUsuarios.appendChild(emptyClone);
             return;
         }
 
@@ -163,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
             estadoBadge.classList.toggle("bg-secondary", u.estado !== "Activo");
 
 
-            tablaUsuariosEl.appendChild(clone);
+            tbodyUsuarios.appendChild(clone);
         });
     }
 
@@ -176,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.textContent = i;
             btn.className = `btn btn-sm ${i === pagination.currentPage ? "btn-dark" : "btn-outline-dark"} mx-1`;
             btn.addEventListener("click", () => {
-                cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, i);
+                cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, i);
             });
             container.appendChild(btn);
         }
@@ -228,10 +230,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Búsqueda dinámica con debounce
     let debounceTimer;
-    buscarUsuarioEl.addEventListener("input", () => {
+    inputBuscarUsuario.addEventListener("input", () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            const filtro = buscarUsuarioEl.value.trim();
+            const filtro = inputBuscarUsuario.value.trim();
             // Reset variables paginación
             currentSort = "id";
             currentOrder = "asc";
@@ -297,12 +299,16 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const data = await response.json();
-            mostrarMensaje(data.message, tipoAccion === 'editar' ? "Editar usuario" : "Nuevo usuario", data.success ? "success" : "warning");
+            mostrarMensaje(data.message, tipoAccion === 'editar' ? "Acción - Editar usuario" : "Nuevo usuario", data.success ? "success" : "warning");
 
             if (data.success) {
                 modals.userForm.hide();
                 formUsuario.reset();
-                cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, 1);
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, currentPage);
             }
         } catch (err) {
             mostrarMensaje("Error al guardar el usuario.", "danger");
@@ -395,7 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             modals.confirm.hide();
-            cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, 1);
+            cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, 1);
         } catch {
             mostrarMensaje("Error de conexión con el servidor.");
         } finally {
@@ -405,7 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Delegación de eventos en tabla
-    tablaUsuariosEl.addEventListener("click", e => {
+    tbodyUsuarios.addEventListener("click", e => {
         const fila = e.target.closest("tr");
         const id = fila?.dataset.id;
         if (!id) return;
@@ -444,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentOrder = newOrder;
 
             // Recargar usuarios ordenados
-            cargarUsuarios(buscarUsuarioEl.value.trim(), currentSort, currentOrder, 1);
+            cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, 1);
         });
     });
 
