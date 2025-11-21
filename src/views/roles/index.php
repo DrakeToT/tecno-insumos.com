@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../../src/helpers/session.php';
 
 // Validar sesión activa
 if (!isUserLoggedIn()) {
-    header('Location: ' . BASE_URL . '/login');
+    header('Location: ' . BASE_URL);
     exit;
 }
 
@@ -42,7 +42,7 @@ require_once __DIR__ . '/../../views/layouts/navbar.php';
                             <th class="text-center user-select-none text-nowrap">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="text-center">
+                    <tbody>
                         <!-- Cuerpo dinámico -->
                     </tbody>
                 </table>
@@ -53,7 +53,8 @@ require_once __DIR__ . '/../../views/layouts/navbar.php';
 </div>
 
 <?php
-require_once __DIR__ . '/../layouts/modals/modal-rol-form.php';
+require_once __DIR__ . '/../layouts/modals/modal-role-form.php';
+require_once __DIR__ . '/../layouts/modals/modal-role-permissions.php';
 require_once __DIR__ . '/../layouts/modals/modal-confirm.php';
 require_once __DIR__ . '/../layouts/modals/modal-message.php';
 require_once __DIR__ . '/../layouts/templates/template-role-row.php';

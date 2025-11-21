@@ -10,7 +10,7 @@
         </td>
         <td class="text-center text-nowrap acciones">
             <button class="btn btn-sm btn-outline-primary btn-editar" title="Editar usuario">
-                <i class="bi bi-pencil-square"></i>
+                <i class="bi bi-pencil"></i>
             </button>
             <button class="btn btn-sm btn-outline-warning ms-1 btn-estado" title="Cambiar estado">
                 <i class="bi bi-arrow-repeat"></i>

@@ -14,7 +14,7 @@
                 <i class="bi bi-arrow-repeat"></i>
             </button>
             <button class="btn btn-outline-danger btn-sm btn-eliminar" title="Eliminar rol">
-                <i class="bi bi-trash"></i>
+                <i class="bi bi-trash3-fill"></i>
             </button>
         </td>
     </tr>
