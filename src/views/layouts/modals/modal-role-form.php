@@ -14,11 +14,12 @@
                     <div class="mb-3">
                         <label for="nombreRol" class="form-label">Nombre</label>
                         <input type="text" id="nombreRol" name="nombre" class="form-control" required>
-                        <div class="invalid-feedback">Ingrese un nombre válido.</div>
+                        <div class="invalid-feedback">El nombre es obligatorio.</div>
                     </div>
                     <div class="mb-3">
                         <label for="descripcionRol" class="form-label">Descripción</label>
                         <textarea id="descripcionRol" name="descripcion" class="form-control" rows="3"></textarea>
+                        <div class="invalid-feedback">La descripción es obligatoria.</div>
                     </div>
                 </div>
 
