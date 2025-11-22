@@ -18,11 +18,12 @@ $routes = [
     'home'                  => __DIR__ . '/home.php',
     
     // Páginas para usuarios autenticados
-    'inicio'             => __DIR__ . '/../src/views/dashboard/index.php',
+    'inicio'                => __DIR__ . '/../src/views/dashboard/index.php',
     'usuarios'              => __DIR__ . '/../src/views/usuarios/index.php',
     'roles'                 => __DIR__ . '/../src/views/roles/index.php',
     'configuracion'         => __DIR__ . '/../src/views/configuracion/index.php',
     'perfil'                => __DIR__ . '/../src/views/perfil/index.php',
+    'inventario'            => __DIR__ . '/../src/views/modules/inventario/index.php',
     
     // Cerrar sesión
     'logout'                => __DIR__ . '/../src/views/auth/logout.php',
