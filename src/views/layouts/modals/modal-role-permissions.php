@@ -12,13 +12,36 @@
 
             <div class="modal-body">
                 <h6 class="fw-bold">Rol seleccionado:</h6>
-                <p id="nombreRolPerms" class="text-primary"></p>
+                <p class="ms-3"><span id="nombreRolPerms" class="badge bg-secondary fs-6"></span></p>
 
                 <hr>
 
-                <h6 class="fw-bold">Permisos disponibles:</h6>
-                <div id="contenedorPermisos" class="row g-3 mt-2">
-                    <!-- Lista dinámica -->
+                <div class="row">
+                    <div class="row row-cols-3">
+                        <!-- Permisos disponibles -->
+                        <div class="col-5">
+                            <h6 class="fw-bold">Permisos disponibles:</h6>
+                            <input type="text" id="searchDisponibles" class="form-control mb-2 border-dark-subtle focus-ring focus-ring-dark" placeholder="Buscar...">
+                            <select id="listaDisponibles" class="form-select border-dark-subtle" size="10" multiple>
+                                <!-- más permisos -->
+                            </select>
+                        </div>
+    
+                        <!-- Botones -->
+                        <div class="col-2 d-flex flex-column justify-content-center align-items-center">
+                            <button id="btnAsignar" class="btn btn-primary mb-2">→</button>
+                            <button id="btnQuitar" class="btn btn-secondary">←</button>
+                        </div>
+    
+                        <!-- Permisos asignados -->
+                        <div class="col-5">
+                            <h6 class="fw-bold">Permisos asignados:</h6>
+                            <input type="text" id="searchAsignados" class="form-control mb-2 border-dark-subtle focus-ring focus-ring-dark" placeholder="Buscar...">
+                            <select id="listaAsignados" class="form-select border-dark-subtle" size="10" multiple>
+                                <!-- se llenará dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
