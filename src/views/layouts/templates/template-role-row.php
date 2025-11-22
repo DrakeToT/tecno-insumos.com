@@ -13,6 +13,9 @@
             <button class="btn btn-sm btn-outline-warning ms-1 btn-estado" title="Cambiar estado">
                 <i class="bi bi-arrow-repeat"></i>
             </button>
+            <button class="btn btn-sm btn-outline-success ms-1 btn-permisos" title="Cambiar permisos">
+                <i class="bi bi-shield-lock"></i>
+            </button>
             <button class="btn btn-outline-danger btn-sm btn-eliminar" title="Eliminar rol">
                 <i class="bi bi-trash3-fill"></i>
             </button>
@@ -22,7 +25,7 @@
 
 <template id="roleRowNullTemplate">
     <tr>
-        <td colspan="5" class="text-muted py-3">
+        <td colspan="5" class="text-center text-muted py-3">
             <i class="bi bi-info-circle"></i> No se encontraron roles.
         </td>
     </tr>
