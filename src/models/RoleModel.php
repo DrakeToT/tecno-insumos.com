@@ -11,13 +11,33 @@ class RoleModel
         $this->conn = $db->getConnection();
     }
 
-    /**
-     * Obtener todos los roles
-     */
-    public function getAll()
+    public function getAll(string $search = '', string $sort = 'id', string $order = 'ASC', int $limit = 10, int $offset = 0): array
     {
-        $sql = "SELECT id, nombre, descripcion, estado FROM roles ORDER BY id ASC";
+        $allowedSort = ['id', 'nombre', 'descripcion', 'estado'];
+        if (!in_array($sort, $allowedSort)) $sort = 'id';
+        $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+
+        $sql =
+            "   SELECT id, nombre, descripcion, estado
+            FROM roles
+            WHERE (
+                :search = '' OR
+                nombre LIKE :nombre OR
+                descripcion LIKE :descripcion
+            )
+            ORDER BY $sort $order
+            LIMIT :limit OFFSET :offset 
+        ";
+
         $stmt = $this->conn->prepare($sql);
+        $like = "%{$search}%";
+
+        $stmt->bindValue(':search', $search, PDO::PARAM_STR);
+        $stmt->bindValue(':nombre', $like, PDO::PARAM_STR);
+        $stmt->bindValue(':descripcion', $like, PDO::PARAM_STR);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -88,5 +108,19 @@ class RoleModel
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function countAll(string $search = ''): int
+    {
+        $sql = "SELECT COUNT(*) FROM roles WHERE (:search = '' OR nombre LIKE :nombre OR descripcion LIKE :descripcion)";
+        $stmt = $this->conn->prepare($sql);
+
+        $like = "%{$search}%";
+        $stmt->bindValue(':search', $search, PDO::PARAM_STR);
+        $stmt->bindValue(':nombre', $like, PDO::PARAM_STR);
+        $stmt->bindValue(':descripcion', $like, PDO::PARAM_STR);
+
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 }
