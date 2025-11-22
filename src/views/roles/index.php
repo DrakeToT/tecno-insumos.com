@@ -35,10 +35,10 @@ require_once __DIR__ . '/../../views/layouts/navbar.php';
                 <table class="table table-hover align-middle" id="tablaRoles">
                     <thead class="table-dark">
                         <tr>
-                            <th class="sortable" data-sort="id">ID <i class="bi bi-caret-up-fill text-warning"></i></th>
-                            <th class="sortable" data-sort="nombre">Nombre <i class="bi bi-caret-up-fill opacity-0 text-warning"></i></th>
-                            <th>Descripción</th>
-                            <th class="sortable" data-sort="estado">Estado <i class="bi bi-caret-up-fill opacity-0 text-warning"></i></th>
+                            <th class="sortable text-nowrap" data-sort="id">ID <i class="bi bi-caret-up-fill opacity-0 text-warning"></i></th>
+                            <th class="sortable text-nowrap" data-sort="nombre">Nombre <i class="bi bi-caret-up-fill opacity-0 text-warning"></i></th>
+                            <th class="user-select-none">Descripción</th>
+                            <th class="sortable text-nowrap" data-sort="estado">Estado <i class="bi bi-caret-up-fill opacity-0 text-warning"></i></th>
                             <th class="text-center user-select-none text-nowrap">Acciones</th>
                         </tr>
                     </thead>
