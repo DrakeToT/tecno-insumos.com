@@ -32,7 +32,9 @@ try {
     switch ($method) {
 
         /**
-         * GET → Listar roles, obtener rol + permisos asignados
+         * GET 
+         * -> Listar roles con búsqueda, ordanamiento y paginación.
+         * -> Obtiene un rol y sus permisos asignados. 
          */
         case 'GET':
             if (!Permisos::tienePermiso('ver_roles')) {
@@ -56,6 +58,15 @@ try {
                 $permisosDisponibles = $permisoModel->getAll(); // Obtengo todos los permisos de la DB
                 $permisosAsignados = $permisoModel->getByRol($idRol); // Obtengo todos los permisos asignados a un rol específico
 
+                // Transformo el campo "nombre"
+                $permisosDisponibles = array_map(function ($permiso) {
+                    // Reemplazo "_" por espacio
+                    $permiso['nombre'] = str_replace('_', ' ', $permiso['nombre']);
+                    // Capitalizo cada palabra
+                    $permiso['nombre'] = ucwords($permiso['nombre']);
+                    return $permiso;
+                }, $permisosDisponibles);
+
                 echo json_encode([
                     "success" => true,
                     "rol" => $rol,
@@ -65,12 +76,41 @@ try {
                 exit;
             }
 
-            $roles = $roleModel->getAll();
-            echo json_encode(["success" => true, "roles" => $roles]);
+            // Si no hay ID, listar roles con búsqueda y ordenamiento
+            $search = trim($_GET['search'] ?? "");
+            $sort   = $_GET['sort'] ?? "id";
+            $order  = $_GET['order'] ?? "ASC";
+            $limit  = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+            $page   = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+
+            // Validar sort y order para evitar SQL injection
+            $allowedSort = ["id", "nombre", "descripcion", "estado"];
+            if (!in_array($sort, $allowedSort)) {
+                $sort = "id";
+            }
+            $order = $order === "DESC" ? "DESC" : "ASC";
+
+            // Obtener roles filtrados
+            $roles = $roleModel->getAll($search, $sort, $order, $limit, $offset);
+
+            // Obtener total de registros para calcular páginas
+            $total = $roleModel->countAll($search);
+
+            echo json_encode([
+                "success" => true,
+                "roles"   => $roles,
+                "pagination" => [
+                    "total" => $total,
+                    "page" => $page,
+                    "limit" => $limit,
+                    "pages" => ceil($total / $limit)
+                ]
+            ]);
             break;
 
         /**
-         * POST → Crear rol
+         * POST -> Crear rol
          */
         case 'POST':
             if (!Permisos::tienePermiso('crear_roles')) {
@@ -79,16 +119,49 @@ try {
                 exit;
             }
 
-            $input = json_decode(file_get_contents("php://input"), true);
+            // Detectar Content-Type
+            $contentType = $_SERVER["CONTENT_TYPE"] ?? "";
 
-            $nombre = sanitizeInput($input['nombre'] ?? '');
-            $descripcion = sanitizeInput($input['descripcion'] ?? '');
-
-            if ($nombre === '') {
-                echo json_encode(["success" => false, "message" => "El nombre del rol es obligatorio."]);
+            if (stripos($contentType, "application/json") !== false) {
+                // JSON
+                $input = json_decode(file_get_contents("php://input"), true) ?? [];
+            } elseif (stripos($contentType, "multipart/form-data") !== false) {
+                // FormData (se recibe como $_POST)
+                $input = $_POST;
+            } else {
+                echo json_encode(["success" => false, "message" => "Formato de datos no soportado."]);
                 exit;
             }
 
+            // Extraer y sanitizar
+            $nombre = sanitizeInput($input['nombre'] ?? '');
+            $descripcion = sanitizeInput($input['descripcion'] ?? '');
+
+            // Validaciones
+            $errors = [];
+
+            if ($nombre === '' || !validateLength($nombre, 50, 3)) {
+                $errors['nombre'] = "El nombre debe tener entre 3 y 50 caracteres.";
+            } elseif (!validateLetters($nombre)) {
+                $errors['nombre'] = "El nombre solo puede contener letras y espacios.";
+            }
+
+            if ($descripcion === '' && !validateLength($descripcion, 255, 5)) {
+                $errors['descripcion'] = "La descripción debe tener entre 5 y 255 caracteres.";
+            }elseif (!validateLetters($descripcion)){
+                $errors['descripcion'] = "La descripción solo puede contener letras y espacios.";
+            }
+
+            if (!empty($errors)) {
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Errores de validación.",
+                    "errors" => $errors
+                ]);
+                exit;
+            }
+
+            // Crear Rol
             $success = $roleModel->create($nombre, $descripcion);
 
             echo json_encode([
@@ -98,7 +171,7 @@ try {
             break;
 
         /**
-         * PUT → Actualizar rol existente
+         * PUT -> Actualizar rol existente
          */
         case 'PUT':
             if (!Permisos::tienePermiso('editar_roles')) {
@@ -107,23 +180,59 @@ try {
                 exit;
             }
 
-            $input = json_decode(file_get_contents("php://input"), true);
+            // Detectar Content-Type
+            $contentType = $_SERVER["CONTENT_TYPE"] ?? "";
 
-            $id = (int)($input['id'] ?? 0);
+            if (stripos($contentType, "application/json") !== false) {
+                // JSON
+                $input = json_decode(file_get_contents("php://input"), true) ?? [];
+            } elseif (stripos($contentType, "multipart/form-data") !== false) {
+                // FormData (se recibe como $_POST)
+                $input = $_POST;
+            } else {
+                echo json_encode(["success" => false, "message" => "Formato de datos no soportado."]);
+                exit;
+            }
+
+            // Extraer y sanitizar
+            $id = sanitizeInt($input['id'] ?? 0);
             $nombre = sanitizeInput($input['nombre'] ?? '');
             $descripcion = sanitizeInput($input['descripcion'] ?? '');
             $estado = sanitizeInput($input['estado'] ?? '');
 
-            if ($id <= 0 || $nombre === '') {
-                echo json_encode(["success" => false, "message" => "Datos incompletos para actualizar."]);
-                exit;
+            // Validaciones
+            $errors = [];
+
+            if ($id <= 0 || !$roleModel->findById($id)) {
+                $errors['id'] = "El rol especificado no existe.";
+            }
+
+            if ($nombre === '' || !validateLength($nombre, 50, 3)) {
+                $errors['nombre'] = "El nombre debe tener entre 3 y 50 caracteres.";
+            } elseif (!validateAlphanumeric($nombre, true)) {
+                $errors['nombre'] = "El nombre solo puede contener letras, números y espacios.";
+            }
+
+            if ($descripcion === '' && !validateLength($descripcion, 255, 5)) {
+                $errors['descripcion'] = "La descripción debe tener entre 5 y 255 caracteres.";
+            }elseif (!validateLetters($descripcion)){
+                $errors['descripcion'] = "La descripción solo puede contener letras y espacios.";
             }
 
             if (!in_array($estado, ['Activo', 'Inactivo'])) {
-                echo json_encode(["success" => false, "message" => "Estado inválido."]);
+                $errors['estado'] = "Estado inválido.";
+            }
+
+            if (!empty($errors)) {
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Errores de validación.",
+                    "errors" => $errors
+                ]);
                 exit;
             }
 
+            // Actualizar
             $success = $roleModel->update($id, $nombre, $descripcion, $estado);
 
             echo json_encode([
@@ -133,8 +242,8 @@ try {
             break;
 
         /**
-         * PATCH → asignar permisos a un rol 
-         *  */ 
+         * PATCH -> asignar permisos a un rol 
+         *  */
         case 'PATCH':
             if (!Permisos::tienePermiso('asignar_permisos')) {
                 http_response_code(403);
@@ -143,25 +252,25 @@ try {
             }
 
             $input = json_decode(file_get_contents("php://input"), true);
-            
-            if(!isset($input['idRol'])  || empty($input['idRol']) ){
+
+            if (!isset($input['idRol'])  || empty($input['idRol'])) {
                 echo json_encode(["success" => false, "message" => "ID del rol es obligatorio."]);
                 exit;
             }
-            
+
             $idRol = sanitizeInt($input['idRol'] ?? 0);
             $permisosSeleccionados = $input['permisos'] ?? [];
-            
+
             if ($idRol <= 0 || $idRol === false) {
                 echo json_encode(["success" => false, "message" => "ID de rol inválido."]);
                 exit;
             }
-            
+
             if (!is_array($permisosSeleccionados)) {
                 echo json_encode(["success" => false, "message" => "Los permisos deben enviarse como un array."]);
                 exit;
             }
-            
+
             $permisoModel = new PermisoModel();
             // borrar permisos existentes
             $permisoModel->clearByRol($idRol);
@@ -179,7 +288,7 @@ try {
 
 
         /**
-         * DELETE → Eliminar rol
+         * DELETE -> Eliminar rol
          */
         case 'DELETE':
             if (!Permisos::tienePermiso('eliminar_roles')) {
