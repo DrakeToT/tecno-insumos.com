@@ -261,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const select = document.createElement('select');
             select.id = "estadoRol";
+            select.name = "estado";
             select.classList = "form-select";
 
             select.add(new Option("Activo", "Activo"));
@@ -284,41 +285,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
         limpiarValidaciones();
 
-        const formData = new FormData(formRol);
+        const formData = {
+            nombre: formRol.nombre.value.trim(),
+            descripcion: formRol.descripcion.value.trim(),
+            ...(tipoAccion === "editar" ? {
+                id: idRolAccion,
+                estado: document.querySelector("#estadoRol")?.value
+            } : {})
+        };
 
         // // Validación si tiene errores
         // let hasError = false;
 
-        // // Nombre obligatorio
-        // const nombre = formData.get("nombre")?.trim();
-        // if (!nombre) {
+        // if (!formData.nombre) {
         //     const input = formRol.querySelector("[name='nombre']");
         //     input.classList.add("is-invalid");
         //     input.parentElement.querySelector(".invalid-feedback").textContent = "El nombre es obligatorio.";
         //     hasError = true;
         // }
 
-        // // Descripción mínima (ejemplo: 5 caracteres)
-        // const descripcion = formData.get("descripcion")?.trim();
-        // if (!descripcion || descripcion.length < 5) {
+        // if (!formData.descripcion || formData.descripcion.length < 5) {
         //     const input = formRol.querySelector("[name='descripcion']");
         //     input.classList.add("is-invalid");
         //     input.parentElement.querySelector(".invalid-feedback").textContent = "La descripción debe tener al menos 5 caracteres.";
         //     hasError = true;
         // }
 
-        // if (hasError) return; // no enviar si falla validación frontend
+        // if (hasError) return;
 
         // Ajustar método según acción
-        let method = "POST";
-        if (tipoAccion === "editar") {
-            method = "PUT";
-            formData.append("id", idRolAccion);
-        }
+        let method = tipoAccion === "editar" ? "PUT" : "POST";
 
         const response = await fetch("./api/index.php?action=roles", {
             method,
-            body: formData
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData) // 🔹 ahora enviamos el objeto plano como JSON
         });
 
         const data = await response.json();
@@ -340,7 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
             cargarRoles(inputBuscarRol.value.trim());
             mostrarMensaje(data.message, "Gestión de Roles", "success");
         }
-
     });
 
     // ---------- CONFIRMAR EDICIÓN DE ROL ----------

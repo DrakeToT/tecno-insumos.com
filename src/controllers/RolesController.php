@@ -125,9 +125,6 @@ try {
             if (stripos($contentType, "application/json") !== false) {
                 // JSON
                 $input = json_decode(file_get_contents("php://input"), true) ?? [];
-            } elseif (stripos($contentType, "multipart/form-data") !== false) {
-                // FormData (se recibe como $_POST)
-                $input = $_POST;
             } else {
                 echo json_encode(["success" => false, "message" => "Formato de datos no soportado."]);
                 exit;
@@ -146,7 +143,7 @@ try {
                 $errors['nombre'] = "El nombre solo puede contener letras y espacios.";
             }
 
-            if ($descripcion === '' && !validateLength($descripcion, 255, 5)) {
+            if ($descripcion === '' || !validateLength($descripcion, 255, 5)) {
                 $errors['descripcion'] = "La descripción debe tener entre 5 y 255 caracteres.";
             }elseif (!validateLetters($descripcion)){
                 $errors['descripcion'] = "La descripción solo puede contener letras y espacios.";
@@ -186,9 +183,6 @@ try {
             if (stripos($contentType, "application/json") !== false) {
                 // JSON
                 $input = json_decode(file_get_contents("php://input"), true) ?? [];
-            } elseif (stripos($contentType, "multipart/form-data") !== false) {
-                // FormData (se recibe como $_POST)
-                $input = $_POST;
             } else {
                 echo json_encode(["success" => false, "message" => "Formato de datos no soportado."]);
                 exit;
@@ -213,7 +207,7 @@ try {
                 $errors['nombre'] = "El nombre solo puede contener letras, números y espacios.";
             }
 
-            if ($descripcion === '' && !validateLength($descripcion, 255, 5)) {
+            if ($descripcion === '' || !validateLength($descripcion, 255, 5)) {
                 $errors['descripcion'] = "La descripción debe tener entre 5 y 255 caracteres.";
             }elseif (!validateLetters($descripcion)){
                 $errors['descripcion'] = "La descripción solo puede contener letras y espacios.";
@@ -227,7 +221,7 @@ try {
                 echo json_encode([
                     "success" => false,
                     "message" => "Errores de validación.",
-                    "errors" => $errors
+                    "errors" => $errors,
                 ]);
                 exit;
             }
