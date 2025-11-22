@@ -12,3 +12,9 @@ img.avatar {
 img.avatar-sm { width: 35px; height: 35px; }
 img.avatar-md { width: 75px; height: 75px; }
 img.avatar-lg { width: 200px; height: 200px; }
+
+/* Tabla */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
