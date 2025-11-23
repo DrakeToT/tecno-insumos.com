@@ -72,6 +72,35 @@ if (isset($_GET['users'])) {
 }
 
 // =============================================================
+// RECURSO: ROLES (?roles)
+// =============================================================
+if (isset($_GET['roles'])) {
+    require_once __DIR__ . '/../../src/controllers/RolesController.php';
+    $roles = new RolesController();
+    switch ($method) {
+        case 'GET':
+            isset($_GET['id']) ? $roles->getOne() : $roles->getAll();
+            break;
+        case 'POST':
+            $roles->create();
+            break;
+        case 'PUT':
+            $roles->update();
+            break;
+        case 'PATCH':
+            $roles->updatePermissions();
+            break;
+        case 'DELETE':
+            $roles->delete();
+            break;
+        default:
+            sendMethodNotAllowed();
+            break;
+    }
+    exit;
+}
+
+// =============================================================
 // COMPATIBILIDAD LEGACY (Usuarios/Roles/Auth siguen con ?action=)
 // =============================================================
 $action = $_GET['action'] ?? '';

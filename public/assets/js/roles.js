@@ -18,12 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const disponibles = document.getElementById("listaDisponibles");
     const asignados = document.getElementById("listaAsignados");
 
+    // Variables de acción (crear/editar)
     let tipoAccion = null;
     let idRolAccion = null;
 
+    // Variables de paginación y orden
     let currentSort = "id";
     let currentOrder = "ASC";
-
     let currentPage = 1;
     let currentLimit = 10;
 
@@ -77,19 +78,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Cargar lista de roles desde la API
     function cargarRoles(search = "", sort = currentSort, order = currentOrder, page = currentPage, limit = currentLimit) {
-        fetch(`./api/index.php?action=roles&search=${encodeURIComponent(search)}&sort=${currentSort}&order=${currentOrder}&page=${page}&limit=${limit}`)
-            .then(r => r.json())
-            .then(data => {
+        const url = `./api/index.php?roles&search=${encodeURIComponent(search)}&sort=${sort}&order=${order}&page=${page}&limit=${limit}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(result => {
                 tbodyRoles.innerHTML = "";
 
-                if (!data.success || data.roles.length === 0) {
+                if (!result.success || !result.data || result.data.length === 0) {
                     tbodyRoles.appendChild(templateNull.content.cloneNode(true));
                     document.querySelector("#paginationContainer").innerHTML = "";
                     return;
                 }
 
-                data.roles.forEach(rol => {
+                result.data.forEach(rol => {
                     const row = templateRow.content.cloneNode(true);
 
                     row.querySelector(".id").textContent = rol.id;
@@ -99,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Estado
                     const badge = row.querySelector(".estado span");
                     badge.textContent = rol.estado;
-                    badge.classList.add(rol.estado === "Activo" ? "bg-success" : "bg-danger");
+                    badge.classList.add(rol.estado === "Activo" ? "bg-success" : "bg-secondary");
 
                     // Botón editar rol
                     row.querySelector(".btn-editar").addEventListener("click", () => {
@@ -123,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     tbodyRoles.appendChild(row);
                 });
 
-                renderPagination(data.pagination);
+                renderPagination(result.pagination);
                 actualizarIndicadoresOrden();
             });
     }
@@ -133,60 +137,36 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = document.querySelector("#paginationContainer");
         container.innerHTML = "";
 
-        const { total, page, limit, pages } = pagination;
+        const { page, pages } = pagination; // Variables estandarizadas
 
-        // Botón anterior
-        const prev = document.createElement("button");
-        prev.className = "btn btn-outline-dark btn-sm mx-1";
-        prev.disabled = page <= 1;
+        if (pages <= 1) return;
 
-        // Ícono izquierda
-        const iconPrev = document.createElement("i");
-        iconPrev.className = "bi bi-chevron-left";
-
-        // Texto
-        const textPrev = document.createTextNode(" Anterior");
-
-        prev.appendChild(iconPrev);
-        prev.appendChild(textPrev);
-
-        prev.addEventListener("click", () => {
-            currentPage = page - 1;
-            cargarRoles(inputBuscarRol.value.trim());
-        });
-        container.appendChild(prev);
-
-        // Números de página
-        for (let i = 1; i <= pages; i++) {
+        // Función auxiliar para crear botones
+        const crearBoton = (texto, iconClass, pagDestino, disabled = false, active = false) => {
             const btn = document.createElement("button");
-            btn.className = `btn btn-sm mx-1 ${i === page ? "btn-dark" : "btn-outline-dark"}`;
-            btn.textContent = i;
-            btn.addEventListener("click", () => {
-                currentPage = i;
-                cargarRoles(inputBuscarRol.value.trim());
-            });
-            container.appendChild(btn);
+            btn.className = `btn btn-sm ${active ? 'btn-dark' : 'btn-outline-dark'} mx-1 border-0`;
+            btn.disabled = disabled;
+            btn.innerHTML = iconClass ? `<i class="${iconClass}"></i>` : texto;
+            
+            if (!disabled && !active) {
+                btn.addEventListener("click", () => {
+                    currentPage = pagDestino;
+                    cargarRoles(inputBuscarRol.value.trim());
+                });
+            }
+            return btn;
+        };
+
+        // Botón Anterior
+        container.appendChild(crearBoton("", "bi bi-chevron-left", page - 1, page <= 1));
+
+        // Botones numéricos
+        for (let i = 1; i <= pages; i++) {
+            container.appendChild(crearBoton(i, null, i, false, i === page));
         }
 
-        // Botón siguiente
-        const next = document.createElement("button");
-        next.className = "btn btn-outline-dark btn-sm mx-1";
-        next.disabled = page >= pages;
-
-        // Texto
-        const textNext = document.createTextNode("Siguiente ");
-        // Ícono derecha
-        const iconNext = document.createElement("i");
-        iconNext.className = "bi bi-chevron-right";
-
-        next.appendChild(textNext);
-        next.appendChild(iconNext);
-
-        next.addEventListener("click", () => {
-            currentPage = page + 1;
-            cargarRoles(inputBuscarRol.value.trim());
-        });
-        container.appendChild(next);
+        // Botón Siguiente
+        container.appendChild(crearBoton("", "bi bi-chevron-right", page + 1, page >= pages));
     }
 
 
@@ -294,52 +274,57 @@ document.addEventListener("DOMContentLoaded", () => {
             } : {})
         };
 
-        // // Validación si tiene errores
-        // let hasError = false;
+        // Validación si tiene errores
+        let hasError = false;
 
-        // if (!formData.nombre) {
-        //     const input = formRol.querySelector("[name='nombre']");
-        //     input.classList.add("is-invalid");
-        //     input.parentElement.querySelector(".invalid-feedback").textContent = "El nombre es obligatorio.";
-        //     hasError = true;
-        // }
+        if (!formData.nombre) {
+            const input = formRol.querySelector("[name='nombre']");
+            input.classList.add("is-invalid");
+            input.parentElement.querySelector(".invalid-feedback").textContent = "El nombre es obligatorio.";
+            hasError = true;
+        }
 
-        // if (!formData.descripcion || formData.descripcion.length < 5) {
-        //     const input = formRol.querySelector("[name='descripcion']");
-        //     input.classList.add("is-invalid");
-        //     input.parentElement.querySelector(".invalid-feedback").textContent = "La descripción debe tener al menos 5 caracteres.";
-        //     hasError = true;
-        // }
+        if (!formData.descripcion || formData.descripcion.length < 5) {
+            const input = formRol.querySelector("[name='descripcion']");
+            input.classList.add("is-invalid");
+            input.parentElement.querySelector(".invalid-feedback").textContent = "La descripción debe tener al menos 5 caracteres.";
+            hasError = true;
+        }
 
-        // if (hasError) return;
+        if (hasError) return;
 
         // Ajustar método según acción
         let method = tipoAccion === "editar" ? "PUT" : "POST";
-
-        const response = await fetch("./api/index.php?action=roles", {
-            method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData) // 🔹 ahora enviamos el objeto plano como JSON
-        });
-
-        const data = await response.json();
-
-        // Procesar errores del backend
-        if (data.errors) {
-            Object.entries(data.errors).forEach(([field, message]) => {
-                const input = formRol.querySelector(`[name="${field}"]`);
-                if (input) {
-                    input.classList.add("is-invalid");
-                    const feedback = input.parentElement.querySelector(".invalid-feedback");
-                    if (feedback) feedback.textContent = message;
-                }
+        
+        try {
+            const response = await fetch("./api/index.php?roles", {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
             });
-        }
-
-        if (data.success) {
-            modalRoleForm.hide();
-            cargarRoles(inputBuscarRol.value.trim());
-            mostrarMensaje(data.message, "Gestión de Roles", "success");
+    
+            const data = await response.json();
+    
+            // Procesar errores del backend
+            if (data.errors) {
+                Object.entries(data.errors).forEach(([field, message]) => {
+                    const input = formRol.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add("is-invalid");
+                        const feedback = input.parentElement.querySelector(".invalid-feedback");
+                        if (feedback) feedback.textContent = message;
+                    }
+                });
+            }
+    
+            if (data.success) {
+                modalRoleForm.hide();
+                cargarRoles(inputBuscarRol.value.trim());
+                mostrarMensaje(data.message, "Gestión de Roles", "success");
+            }
+            
+        } catch (error) {
+            console.error("Error al guardar el rol:", error);    
         }
     });
 
@@ -366,24 +351,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelector("#modalConfirmBtnAceptar").onclick = async () => {
             const nuevoEstado = rol.estado === "Activo" ? "Inactivo" : "Activo";
-
-            const response = await fetch("./api/index.php?action=roles", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: rol.id,
-                    nombre: rol.nombre,
-                    descripcion: rol.descripcion,
-                    estado: nuevoEstado
-                })
-            });
-
-            const data = await response.json();
-            mostrarMensaje(data.message, "Estado actualizado", data.success ? "success" : "danger");
-
-            if (data.success) {
-                cargarRoles(inputBuscarRol.value.trim());
-                modalConfirm.hide();
+            
+            try {
+                const response = await fetch("./api/index.php?roles", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: rol.id,
+                        nombre: rol.nombre,
+                        descripcion: rol.descripcion,
+                        estado: nuevoEstado
+                    })
+                });
+    
+                const data = await response.json();
+                mostrarMensaje(data.message, "Estado actualizado", data.success ? "success" : "danger");
+    
+                if (data.success) {
+                    cargarRoles(inputBuscarRol.value.trim());
+                    modalConfirm.hide();
+                }
+                
+            } catch (error) {
+                console.error("Error al cambiar el estado del rol:", error);    
             }
         };
     }
@@ -409,18 +399,23 @@ document.addEventListener("DOMContentLoaded", () => {
         modalConfirm.show();
 
         document.querySelector("#modalConfirmBtnAceptar").onclick = async () => {
-            const response = await fetch("./api/index.php?action=roles", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id: rol.id })
-            });
-
-            const data = await response.json();
-            mostrarMensaje(data.message, "Eliminar rol", data.success ? "success" : "danger");
-
-            if (data.success) {
-                cargarRoles(inputBuscarRol.value.trim());
-                modalConfirm.hide();
+            
+            try {
+                const response = await fetch("./api/index.php?roles", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: rol.id })
+                });
+    
+                const data = await response.json();
+                mostrarMensaje(data.message, "Eliminar rol", data.success ? "success" : "danger");
+    
+                if (data.success) {
+                    cargarRoles(inputBuscarRol.value.trim());
+                    modalConfirm.hide();
+                }
+            } catch (error) {
+                console.error("Error al eliminar el rol:", error);
             }
         };
     }
@@ -428,40 +423,45 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------- MODAL PERMISOS ----------
     async function abrirModalPermisos(idRol) {
 
-        const response = await fetch(`./api/index.php?action=roles&id=${idRol}`);
-        const data = await response.json();
-
-        if (!data.success) {
-            mostrarMensaje(data.message, "Error", "danger");
-            return;
-        }
-
-        idRolAccion = idRol;
-
-        document.querySelector("#nombreRolPerms").textContent = data.rol.nombre;
-
-        const listaDisponibles = document.querySelector("#listaDisponibles");
-        const listaAsignados = document.querySelector("#listaAsignados");
-
-        // Limpiar contenido previo
-        listaDisponibles.innerHTML = "";
-        listaAsignados.innerHTML = "";
-
-        // Recorrer permisos y distribuirlos
-        data.permisosDisponibles.forEach(perm => {
-            const option = document.createElement("option");
-            option.value = perm.id;
-            option.textContent = perm.nombre;
-            option.title = perm.descripcion; // tooltip con descripción
-
-            if (data.permisosAsignados.includes(perm.id)) {
-                listaAsignados.appendChild(option);
-            } else {
-                listaDisponibles.appendChild(option);
+        try {
+            const response = await fetch(`./api/index.php?roles&id=${idRol}`);
+            const result = await response.json();
+    
+            if (!result.success) {
+                mostrarMensaje(result.message, "Error", "danger");
+                return;
             }
-        });
-
-        modalRolePerms.show();
+    
+            idRolAccion = idRol;
+    
+            document.querySelector("#nombreRolPerms").textContent = result.data.nombre;
+    
+            const listaDisponibles = document.querySelector("#listaDisponibles");
+            const listaAsignados = document.querySelector("#listaAsignados");
+    
+            // Limpiar contenido previo
+            listaDisponibles.innerHTML = "";
+            listaAsignados.innerHTML = "";
+    
+            // Recorrer permisos y distribuirlos
+            result.permisos.disponibles.forEach(perm => {
+                const option = document.createElement("option");
+                option.value = perm.id;
+                option.textContent = perm.nombre;
+                option.title = perm.descripcion; // tooltip con descripción
+    
+                if (result.permisos.asignados.includes(perm.id)) {
+                    listaAsignados.appendChild(option);
+                } else {
+                    listaDisponibles.appendChild(option);
+                }
+            });
+    
+            modalRolePerms.show();
+            
+        } catch (error) {
+            console.error("Error al cargar los permisos del rol:", error);
+        }
     }
 
     // ---------- GUARDAR PERMISOS ----------
@@ -471,20 +471,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Extraigo los IDs (value) de cada opción
         const permisos = [...asignados.options].map(opt => parseInt(opt.value));
+        try {
+            const response = await fetch("./api/index.php?roles", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idRol: idRolAccion, permisos })
+            });
+    
+            const data = await response.json();
+            mostrarMensaje(data.message, "Permisos", data.success ? "success" : "danger");
+    
+            if (data.success) modalRolePerms.hide();
 
-        // Envío al backend
-        const response = await fetch("./api/index.php?action=roles", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idRol: idRolAccion, permisos })
-        });
-
-        const data = await response.json();
-        mostrarMensaje(data.message, "Permisos", data.success ? "success" : "danger");
-
-        if (data.success) modalRolePerms.hide();
+        } catch (error) {
+            console.error("Error al guardar los permisos del rol:", error);
+        }
     });
 
+    // ---------- Botones de mover permisos ----------
     document.getElementById("btnAsignar").addEventListener("click", () => {
         [...disponibles.selectedOptions].forEach(opt => {
             asignados.add(opt);
