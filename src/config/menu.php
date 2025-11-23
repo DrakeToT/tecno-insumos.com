@@ -26,12 +26,6 @@ return [
             'route' => '/roles',
             'page'  => 'roles',
         ],
-        [
-            'label' => 'Configuración',
-            'icon'  => 'bi-gear',
-            'route' => '/configuracion',
-            'page'  => 'configuracion',
-        ],
     ],
 
     // Menú del Encargado de Stock
