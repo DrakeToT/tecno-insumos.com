@@ -129,7 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 renderPagination(result.pagination);
                 actualizarIndicadoresOrden();
-            });
+            })
+            .catch(err => console.error("Error cargando roles:", err));
     }
 
     // Renderiza las páginas (ROL)
