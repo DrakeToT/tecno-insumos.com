@@ -3,6 +3,7 @@ require_once __DIR__ . '/../models/EquipoModel.php';
 require_once __DIR__ . '/../models/CategoriaModel.php';
 require_once __DIR__ . '/../helpers/session.php';
 require_once __DIR__ . '/../helpers/sanitize.php';
+require_once __DIR__ . '/../helpers/permisos.php';
 
 class EquiposController {
     private $equipoModel;
@@ -15,10 +16,18 @@ class EquiposController {
 
     // Renderiza la vista (HTML)
     public function index() {
+        // Valida Sesión
         if (!isUserLoggedIn()) {
-            header('Location: ' . BASE_URL . 'login');
+            header('Location: ' . BASE_URL);
             exit;
         }
+        // Valida Permiso
+        if (!Permisos::tienePermiso('ver_inventario')) {
+            http_response_code(403);
+            require_once __DIR__ . '/../views/errors/403.php'; // Carga la vista de error
+            exit; // Detiene la carga del resto de la página
+        }
+
         require_once __DIR__ . '/../views/modules/inventario/index.php';
     }
 
@@ -32,6 +41,10 @@ class EquiposController {
      */
     public function getAll() {
         $this->checkAuth();
+
+        if (!Permisos::tienePermiso('ver_inventario')) {
+            $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado.'], 403);
+        }
 
         $search = sanitizeInput($_GET['search'] ?? '');
         $sort   = sanitizeInput($_GET['sort'] ?? 'id');
@@ -64,6 +77,11 @@ class EquiposController {
      */
     public function getOne() {
         $this->checkAuth();
+
+        if (!Permisos::tienePermiso('ver_inventario')) {
+            $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado.'], 403);
+        }
+
         $id = isset($_GET['id']) ? sanitizeInt($_GET['id']) : 0;
         $equipo = $this->equipoModel->getById($id);
         
@@ -79,6 +97,11 @@ class EquiposController {
      */
     public function getCategorias() {
         $this->checkAuth();
+
+        if (!Permisos::tienePermiso('ver_inventario')) {
+            $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado.'], 403);
+        }
+
         try {
             $categorias = $this->categoriaModel->getAllActive();
             $this->jsonResponse(['success' => true, 'data' => $categorias]);
@@ -93,6 +116,10 @@ class EquiposController {
      */
     public function create() {
         $this->checkAuth();
+
+        if (!Permisos::tienePermiso('crear_equipos')) {
+            $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para registrar equipos.'], 403);
+        }
 
         // Leer JSON Body
         $input = json_decode(file_get_contents("php://input"), true);
@@ -127,6 +154,10 @@ class EquiposController {
     public function update() {
         $this->checkAuth();
 
+        if (!Permisos::tienePermiso('editar_equipos')) {
+            $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para editar equipos.'], 403);
+        }
+
         // En PUT los datos siempre vienen en php://input
         $input = json_decode(file_get_contents("php://input"), true);
         $id = isset($input['id']) ? sanitizeInt($input['id']) : 0;
@@ -158,6 +189,10 @@ class EquiposController {
      */
     public function delete() {
         $this->checkAuth();
+
+        if (!Permisos::tienePermiso('eliminar_equipos')) {
+            $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para eliminar equipos.'], 403);
+        }
 
         $input = json_decode(file_get_contents("php://input"), true);
         $id = isset($input['id']) ? sanitizeInt($input['id']) : 0;
