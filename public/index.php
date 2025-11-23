@@ -40,6 +40,12 @@ switch ($route) {
         $controller = new UsersController();
         $controller->index(); // Valida 'ver_usuarios'
         exit;
+    // Módulo Roles
+    case 'roles':
+        require_once __DIR__ . '/../src/controllers/RolesController.php';
+        $controller = new RolesController();
+        $controller->index(); // Valida 'ver_roles'
+        exit;
 }
 
 // ========================================
@@ -51,13 +57,12 @@ switch ($route) {
 $legacyRoutes = [
     // Página pública
     'home'                  => __DIR__ . '/home.php',
-    
+
     // Páginas generales
     'inicio'                => __DIR__ . '/../src/views/dashboard/index.php',
     'perfil'                => __DIR__ . '/../src/views/perfil/index.php',
-    'roles'                 => __DIR__ . '/../src/views/roles/index.php',
     'inventario'            => __DIR__ . '/../src/views/inventario/index.php',
-    
+
     // Cerrar sesión
     'logout'                => __DIR__ . '/../src/views/auth/logout.php',
 ];
