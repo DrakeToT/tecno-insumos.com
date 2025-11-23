@@ -28,7 +28,7 @@ class EquiposController {
             exit; // Detiene la carga del resto de la página
         }
 
-        require_once __DIR__ . '/../views/modules/inventario/index.php';
+        require_once __DIR__ . '/../views/inventario/index.php';
     }
 
     // ====================================================================
