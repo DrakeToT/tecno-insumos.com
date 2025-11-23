@@ -11,31 +11,21 @@ header('Content-Type: application/json; charset=utf-8');
 if (isset($_GET['equipos'])) {
     require_once __DIR__ . '/../../src/controllers/EquiposController.php';
     $controller = new EquiposController();
-
     switch ($method) {
         case 'GET':
-            if (isset($_GET['id'])) {
-                $controller->getOne();    // Obtener uno
-            } else {
-                $controller->getAll();    // Listar todos
-            }
+            isset($_GET['id']) ? $controller->getOne() : $controller->getAll();
             break;
-
         case 'POST':
-            $controller->create();        // Crear
+            $controller->create();
             break;
-
         case 'PUT':
-            $controller->update();        // Actualizar (Reemplazo/Edición)
+            $controller->update();
             break;
-
         case 'DELETE':
-            $controller->delete();        // Eliminar
+            $controller->delete();
             break;
-
         default:
-            http_response_code(405);
-            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            sendMethodNotAllowed();
             break;
     }
     exit;
@@ -47,14 +37,38 @@ if (isset($_GET['equipos'])) {
 if (isset($_GET['categorias'])) {
     require_once __DIR__ . '/../../src/controllers/EquiposController.php';
     $controller = new EquiposController();
-
-    if ($method === 'GET') {
-        $controller->getCategorias();
-    } else {
-        http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
-    }
+    if ($method === 'GET') $controller->getCategorias();
+    else sendMethodNotAllowed();
     exit;
+}
+
+// =============================================================
+// RECURSO: USUARIOS (?users)
+// =============================================================
+if (isset($_GET['users'])) {
+    require_once __DIR__ . '/../../src/controllers/UsersController.php';
+    $user = new UsersController();
+
+    switch ($method) {
+        case 'GET':
+            isset($_GET['id']) ? $user->getOne() : $user->getAll();
+            break;
+        case 'POST':
+            $user->create();
+            break;
+        case 'PUT':
+            $user->update();
+            break;
+        case 'PATCH':
+            $user->changeStatusOrPassword();
+            break;
+        case 'DELETE':
+            $user->delete();
+            break;
+        default:
+            sendMethodNotAllowed();
+            break;
+    }
 }
 
 // =============================================================
@@ -85,4 +99,11 @@ if ($action) {
     // Si no hay ni recurso (?equipos) ni acción (?action)
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Solicitud inválida']);
+}
+
+// Helper
+function sendMethodNotAllowed()
+{
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
 }

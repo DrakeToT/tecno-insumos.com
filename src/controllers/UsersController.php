@@ -2,287 +2,332 @@
 require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../helpers/sanitize.php';
 require_once __DIR__ . '/../helpers/session.php';
+require_once __DIR__ . '/../helpers/permisos.php';
 
-header('Content-Type: application/json; charset=utf-8');
+class UsersController
+{
+    private $userModel;
 
-try {
-    // Verificar sesión y permisos (solo admin debería acceder)
-    if (!isUserLoggedIn()) {
-        echo json_encode(["success" => false, "message" => "Acceso no autorizado."]);
-        http_response_code(403);
-        exit;
+    public function __construct()
+    {
+        $this->userModel = new UserModel();
     }
 
-    $user = currentUser();
-    $idRol = $user['rol']['id'] ?? null;
+    /**
+     * Renderiza la vista
+     * Protegido visualmente con Error 403
+     */
+    public function index()
+    {
+        if (!isUserLoggedIn()) {
+            header('Location: ' . BASE_URL);
+            exit;
+        }
 
-    // Validar que el rol sea Administrador (idRol = 1)
-    if ($idRol !== 1) {
-        echo json_encode(["success" => false, "message" => "No tiene permisos para acceder a esta sección."]);
-        http_response_code(403);
-        exit;
+        // Validación de permiso para ver la pantalla
+        if (!Permisos::tienePermiso('ver_usuarios')) {
+            http_response_code(403);
+            require_once __DIR__ . '/../views/errors/403.php';
+            exit;
+        }
+
+        require_once __DIR__ . '/../views/usuarios/index.php';
     }
 
-    $userModel = new UserModel();
-    $method = $_SERVER['REQUEST_METHOD'];
+    // ====================================================================
+    // API REST METHODS
+    // ====================================================================
 
-    switch ($method) {
+    /**
+     * GET: Obtener un usuario específico por ID
+     * Permiso: ver_usuarios
+     */
+    public function getOne()
+    {
+        $this->checkAuth();
 
-        // =====================================================
-        // GET → Listar usuarios (con búsqueda opcional) u obtener uno solo por ID
-        // =====================================================
-        case 'GET':
-            $userModel = new UserModel();
+        if (!Permisos::tienePermiso('ver_usuarios')) {
+            $this->jsonResponse(['success' => false, 'message' => 'No tiene permiso para ver usuarios.'], 403);
+        }
 
-            // Si se envía un ID, devuelve solo ese usuario
-            if (isset($_GET['id'])) {
-                $idUsuario = (int) $_GET['id'];
-                $usuario = $userModel->findById($idUsuario);
+        $idUsuario = isset($_GET['id']) ? sanitizeInt($_GET['id']) : 0;
 
-                if ($usuario) {
-                    echo json_encode(["success" => true, "usuario" => $usuario]);
-                } else {
-                    echo json_encode(["success" => false, "message" => "Usuario no encontrado."]);
-                }
-                break;
-            }
+        if ($idUsuario <= 0) {
+            $this->jsonResponse(["success" => false, "message" => "ID inválido."], 400);
+        }
 
-            // Si no hay ID, lista los usuarios
-            // Parámetros recibidos
-            $search = trim($_GET['search'] ?? '');
-            $sort = $_GET['sort'] ?? 'id';
-            $order = $_GET['order'] ?? 'ASC';
-            $page = max(1, intval($_GET['page'] ?? 1));
-            $limit = intval($_GET['limit'] ?? 10);
-            $offset = ($page - 1) * $limit;
+        $usuario = $this->userModel->findById($idUsuario);
 
-            // Validar parámetros
-            $allowedSort = ['id', 'nombre', 'apellido', 'email', 'estado', 'rol'];
-            if (!in_array($sort, $allowedSort)) $sort = 'id';
+        if ($usuario) {
+            $this->jsonResponse(["success" => true, "usuario" => $usuario]);
+        } else {
+            $this->jsonResponse(["success" => false, "message" => "Usuario no encontrado."], 404);
+        }
+    }
 
-            $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+    /**
+     * GET: Listar usuarios con filtros y paginación
+     * Permiso: ver_usuarios
+     */
+    public function getAll()
+    {
+        $this->checkAuth();
 
-            // Obtener usuarios y total
-            $usuarios = $userModel->getAll($search, $sort, $order, $limit, $offset);
-            $totalUsuarios = $userModel->countAll($search);
-            $totalPaginas = ceil($totalUsuarios / $limit);
+        if (!Permisos::tienePermiso('ver_usuarios')) {
+            $this->jsonResponse(['success' => false, 'message' => 'No tiene permiso para ver usuarios.'], 403);
+        }
 
-            echo json_encode([
-                "success" => true,
-                "usuarios" => $usuarios,
-                "pagination" => [
-                    "currentPage" => $page,
-                    "totalPages" => $totalPaginas,
-                    "totalItems" => $totalUsuarios,
-                    "perPage" => $limit
+        $search = sanitizeInput($_GET['search'] ?? '');
+        $sort   = sanitizeInput($_GET['sort'] ?? 'id');
+        $order  = sanitizeInput($_GET['order'] ?? 'ASC');
+        $limit  = isset($_GET['limit']) ? sanitizeInt($_GET['limit']) : 10;
+        $page   = isset($_GET['page']) ? sanitizeInt($_GET['page']) : 1;
+        $offset = ($page - 1) * $limit;
+
+        $allowedSort = ['id', 'nombre', 'apellido', 'email', 'estado', 'rol'];
+        if (!in_array($sort, $allowedSort)) $sort = 'id';
+        $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+
+        try {
+            $usuarios = $this->userModel->getAll($search, $sort, $order, $limit, $offset);
+            $totalUsuarios = $this->userModel->countAll($search);
+            $totalPages = ceil($totalUsuarios / $limit);
+
+            $this->jsonResponse([
+                'success' => true,
+                'data' => $usuarios,
+                'pagination' => [
+                    'page' => $page,
+                    'pages' => $totalPages,
+                    'total' => $totalUsuarios,
+                    'limit' => $limit
                 ]
             ]);
+        } catch (Exception $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Error al obtener datos.'], 500);
+        }
+    }
 
-            break;
+    /**
+     * POST: Crear Usuario
+     * Permiso: crear_usuarios
+     */
+    public function create()
+    {
+        $this->checkAuth();
 
-        // =====================================================
-        // POST → Crear un nuevo usuario
-        // =====================================================
-        case 'POST':
-            $input = json_decode(file_get_contents("php://input"), true);
+        if (!Permisos::tienePermiso('crear_usuarios')) {
+            $this->jsonResponse(["success" => false, "message" => "No tiene permiso para crear usuarios."], 403);
+        }
 
-            $nombre = sanitizeInput($input['nombre'] ?? '');
-            $apellido = sanitizeInput($input['apellido'] ?? '');
-            $email = sanitizeInput($input['email'] ?? '');
-            $password = sanitizeInput($input['password'] ?? '');
-            $idRol = (int) ($input['rol'] ?? 0);
-            $estado = sanitizeInput($input['estado'] ?? 'Activo');
+        $input = json_decode(file_get_contents("php://input"), true);
 
-            // Validaciones básicas
-            if ($nombre === '' || $apellido === '' || $email === '' || $password === '' || !$idRol) {
-                echo json_encode(["success" => false, "message" => "Todos los campos son obligatorios."]);
-                exit;
-            }
-            // Valida el formato de email
-            if (!validateEmail($email)) {
-                echo json_encode(["success" => false, "message" => "Correo electrónico inválido."]);
-                exit;
-            }
-            // Valida cantidad de caracteres
-            if (!validateLength($password, 255, 8)) {
-                echo json_encode(["success" => false, "message" => "La contraseña debe tener al menos 8 caracteres."]);
-                exit;
-            }
-            // Verifica si el email ya existe
-            if ($userModel->findByEmail($email)) {
-                echo json_encode(["success" => false, "message" => "El correo electrónico ya está registrado."]);
-                exit;
-            }
+        $nombre   = sanitizeInput($input['nombre'] ?? '');
+        $apellido = sanitizeInput($input['apellido'] ?? '');
+        $email    = sanitizeInput($input['email'] ?? '');
+        $password = sanitizeInput($input['password'] ?? '');
+        $idRol    = isset($input['rol']) ? sanitizeInt($input['rol']) : 0;
+        $estado   = sanitizeInput($input['estado'] ?? 'Activo');
 
-            // Hashear contraseña antes de guardar
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        // Validaciones
+        if (empty($nombre) || empty($apellido) || empty($email) || empty($password) || $idRol <= 0) {
+            $this->jsonResponse(["success" => false, "message" => "Todos los campos son obligatorios."], 400);
+        }
+        if (!validateEmail($email)) {
+            $this->jsonResponse(["success" => false, "message" => "Correo electrónico inválido."], 400);
+        }
+        if (!validateLength($password, 255, 8)) {
+            $this->jsonResponse(["success" => false, "message" => "La contraseña debe tener al menos 8 caracteres."], 400);
+        }
+        if ($this->userModel->findByEmail($email)) {
+            $this->jsonResponse(["success" => false, "message" => "El correo electrónico ya está registrado."], 409);
+        }
 
-            $data = [
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-                'email' => $email,
-                'password' => $hashedPassword,
-                'idRol' => $idRol,
-                'estado' => $estado
-            ];
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-            $success = $userModel->create($data);
+        $data = [
+            'nombre' => $nombre,
+            'apellido' => $apellido,
+            'email' => $email,
+            'password' => $hashedPassword,
+            'idRol' => $idRol,
+            'estado' => $estado
+        ];
 
-            echo json_encode([
-                "success" => $success,
-                "message" => $success
-                    ? "Usuario creado correctamente."
-                    : "Error al crear el usuario."
-            ]);
-            break;
+        if ($this->userModel->create($data)) {
+            $this->jsonResponse(["success" => true, "message" => "Usuario creado correctamente."]);
+        } else {
+            $this->jsonResponse(["success" => false, "message" => "Error al crear el usuario."], 500);
+        }
+    }
 
-        // =====================================================
-        // PUT → Editar usuario existente
-        // =====================================================
-        case 'PUT':
-            $input = json_decode(file_get_contents("php://input"), true);
+    /**
+     * PUT: Editar Usuario (Datos completos)
+     * Permiso: editar_usuarios
+     */
+    public function update()
+    {
+        $this->checkAuth();
 
-            $idUsuario = (int) ($input['id'] ?? 0);
-            $nombre   = sanitizeInput($input['nombre'] ?? '');
-            $apellido = sanitizeInput($input['apellido'] ?? '');
-            $email    = sanitizeInput($input['email'] ?? '');
-            $rol      = (int) ($input['rol'] ?? 0);
-            $estado   = sanitizeInput($input['estado'] ?? 'Activo');
+        if (!Permisos::tienePermiso('editar_usuarios')) {
+            $this->jsonResponse(["success" => false, "message" => "No tiene permiso para editar usuarios."], 403);
+        }
 
-            if ($idUsuario <= 0 || $nombre === '' || $apellido === '' || $email === '' || $rol === 0) {
-                echo json_encode(["success" => false, "message" => "Todos los campos son obligatorios."]);
-                exit;
-            }
+        $input = json_decode(file_get_contents("php://input"), true);
 
-            if (!validateEmail($email)) {
-                echo json_encode(["success" => false, "message" => "Correo electrónico inválido."]);
-                exit;
-            }
+        $idUsuario = isset($input['id']) ? sanitizeInt($input['id']) : 0;
+        $nombre    = sanitizeInput($input['nombre'] ?? '');
+        $apellido  = sanitizeInput($input['apellido'] ?? '');
+        $email     = sanitizeInput($input['email'] ?? '');
+        $rol       = isset($input['rol']) ? sanitizeInt($input['rol']) : 0;
+        $estado    = sanitizeInput($input['estado'] ?? 'Activo');
 
-            // Verificar si el email ya pertenece a otro usuario
-            $existingUser = $userModel->findByEmail($email);
-            if ($existingUser && (int)$existingUser['id'] !== $idUsuario) {
-                echo json_encode(["success" => false, "message" => "El correo electrónico ya pertenece a otro usuario."]);
-                exit;
-            }
+        if ($idUsuario <= 0 || empty($nombre) || empty($apellido) || empty($email) || $rol <= 0) {
+            $this->jsonResponse(["success" => false, "message" => "Todos los campos son obligatorios."], 400);
+        }
 
-            $data = [
-                'nombre'   => $nombre,
-                'apellido' => $apellido,
-                'email'    => $email,
-                'idRol'    => $rol,
-                'estado'   => $estado
-            ];
+        if (!validateEmail($email)) {
+            $this->jsonResponse(["success" => false, "message" => "Correo electrónico inválido."], 400);
+        }
 
-            $success = $userModel->update($idUsuario, $data);
+        // Verificar duplicados (email usado por otro ID)
+        $existingUser = $this->userModel->findByEmail($email);
+        if ($existingUser && (int)$existingUser['id'] !== $idUsuario) {
+            $this->jsonResponse(["success" => false, "message" => "El correo electrónico ya pertenece a otro usuario."], 409);
+        }
 
-            $response = [
-                "success" => $success,
-                "message" => $success
-                    ? "Usuario actualizado correctamente."
-                    : "No se pudieron guardar los cambios."
-            ];
+        $data = [
+            'nombre'   => $nombre,
+            'apellido' => $apellido,
+            'email'    => $email,
+            'idRol'    => $rol,
+            'estado'   => $estado
+        ];
 
-            // Actualiza la sesión si el usuario editado es el que está logueado
-            if ($success && $idUsuario === $user['id']) {
+        if ($this->userModel->update($idUsuario, $data)) {
+            // Si se editó a sí mismo, refrescar sesión
+            $currentUser = currentUser();
+            $response = ["success" => true, "message" => "Usuario actualizado correctamente."];
+
+            if ($currentUser && $idUsuario === $currentUser['id']) {
                 refreshUserSession($idUsuario);
                 $response["redirect"] = $_SERVER['HTTP_REFERER'] ?? BASE_URL;
             }
-
-            echo json_encode($response);
-            break;
-
-        // =====================================================
-        // PATCH → Cambiar estado de usuario (Activo/Inactivo)
-        // =====================================================
-        case 'PATCH':
-            $input = json_decode(file_get_contents("php://input"), true);
-            $idUsuario = (int) ($input['id'] ?? 0);
-            $accion = sanitizeInput($input['accion'] ?? '');
-
-            if (!$idUsuario || $accion === '') {
-                echo json_encode(["success" => false, "message" => "Datos incompletos."]);
-                exit;
-            }
-
-            // Cambiar estado (Activo/Inactivo)
-            if ($accion === 'estado') {
-
-                // Evitar cambiar el propio estado
-                if ($idUsuario === $user['id']) {
-                    echo json_encode(["success" => false, "message" => "No puede cambiar el estado de su propio usuario."]);
-                    exit;
-                }
-
-                $nuevoEstado = sanitizeInput($input['estado'] ?? '');
-                if (!in_array($nuevoEstado, ['Activo', 'Inactivo'])) {
-                    echo json_encode(["success" => false, "message" => "Estado inválido."]);
-                    exit;
-                }
-
-                $success = $userModel->changeStatus($idUsuario, $nuevoEstado);
-                echo json_encode([
-                    "success" => $success,
-                    "message" => $success
-                        ? "Estado actualizado correctamente."
-                        : "Error al actualizar el estado."
-                ]);
-                exit;
-            }
-
-            // Restablecer contraseña temporal
-            if ($accion === 'reset-password') {
-                $nuevaPassword = 'TempPass' . rand(1000, 9999);
-                $hash = password_hash($nuevaPassword, PASSWORD_DEFAULT);
-
-                $success = $userModel->updatePassword($idUsuario, $hash);
-                echo json_encode([
-                    "success" => $success,
-                    "message" => $success
-                        ? "Contraseña restablecida correctamente."
-                        : "Error al restablecer la contraseña.",
-                    "tempPassword" => $success ? $nuevaPassword : null
-                ]);
-                exit;
-            }
-
-            echo json_encode(["success" => false, "message" => "Acción no válida."]);
-            break;
-
-        // =====================================================
-        // DELETE → Eliminar usuario
-        // =====================================================
-        case 'DELETE':
-            $input = json_decode(file_get_contents("php://input"), true);
-            $idUsuario = (int) ($input['id'] ?? 0);
-
-            //  Evitar eliminarse a sí mismo
-            if ($idUsuario === $user['id']) {
-                echo json_encode(["success" => false, "message" => "No puede eliminar su propio usuario."]);
-                exit;
-            }
-
-            if (!$idUsuario) {
-                echo json_encode(["success" => false, "message" => "ID de usuario inválido."]);
-                exit;
-            }
-
-            if ($userModel->delete($idUsuario)) {
-                echo json_encode(["success" => true, "message" => "Usuario eliminado correctamente."]);
-            } else {
-                echo json_encode(["success" => false, "message" => "Error al eliminar el usuario."]);
-            }
-            break;
-
-        default:
-            http_response_code(405);
-            echo json_encode(["success" => false, "message" => "Método no permitido."]);
-            break;
+            $this->jsonResponse($response);
+        } else {
+            $this->jsonResponse(["success" => false, "message" => "No se pudieron guardar los cambios."], 500);
+        }
     }
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Error de servidor: " . $e->getMessage()
-    ]);
+
+    /**
+     * PATCH: Cambiar Estado o Resetear Password
+     * Permiso: editar_usuarios
+     */
+    public function changeStatusOrPassword()
+    {
+        $this->checkAuth();
+
+        if (!Permisos::tienePermiso('editar_usuarios')) {
+            $this->jsonResponse(["success" => false, "message" => "No tiene permiso para modificar usuarios."], 403);
+        }
+
+        $input = json_decode(file_get_contents("php://input"), true);
+        $idUsuario = isset($input['id']) ? sanitizeInt($input['id']) : 0;
+        $accion = sanitizeInput($input['accion'] ?? '');
+
+        if ($idUsuario <= 0 || empty($accion)) {
+            $this->jsonResponse(["success" => false, "message" => "Datos incompletos."], 400);
+        }
+
+        // 1. Acción: Cambiar Estado
+        if ($accion === 'estado') {
+            $currentUser = currentUser();
+            if ($currentUser && $idUsuario === $currentUser['id']) {
+                $this->jsonResponse(["success" => false, "message" => "No puede cambiar el estado de su propio usuario."], 400);
+            }
+
+            $nuevoEstado = sanitizeInput($input['estado'] ?? '');
+            if (!in_array($nuevoEstado, ['Activo', 'Inactivo'])) {
+                $this->jsonResponse(["success" => false, "message" => "Estado inválido."], 400);
+            }
+
+            if ($this->userModel->changeStatus($idUsuario, $nuevoEstado)) {
+                $this->jsonResponse(["success" => true, "message" => "Estado actualizado correctamente."]);
+            } else {
+                $this->jsonResponse(["success" => false, "message" => "Error al actualizar el estado."], 500);
+            }
+        }
+
+        // 2. Acción: Reset Password
+        if ($accion === 'reset-password') {
+            $nuevaPassword = 'TempPass' . rand(1000, 9999);
+            $hash = password_hash($nuevaPassword, PASSWORD_DEFAULT);
+
+            if ($this->userModel->updatePassword($idUsuario, $hash)) {
+                $this->jsonResponse([
+                    "success" => true,
+                    "message" => "Contraseña restablecida correctamente.",
+                    "tempPassword" => $nuevaPassword
+                ]);
+            } else {
+                $this->jsonResponse(["success" => false, "message" => "Error al restablecer la contraseña."], 500);
+            }
+        }
+
+        $this->jsonResponse(["success" => false, "message" => "Acción no válida."], 400);
+    }
+
+    /**
+     * DELETE: Eliminar Usuario
+     * Permiso: eliminar_usuarios
+     */
+    public function delete()
+    {
+        $this->checkAuth();
+
+        if (!Permisos::tienePermiso('eliminar_usuarios')) {
+            $this->jsonResponse(["success" => false, "message" => "No tiene permiso para eliminar usuarios."], 403);
+        }
+
+        $input = json_decode(file_get_contents("php://input"), true);
+        $idUsuario = isset($input['id']) ? sanitizeInt($input['id']) : 0;
+
+        $currentUser = currentUser();
+        if ($currentUser && $idUsuario === $currentUser['id']) {
+            $this->jsonResponse(["success" => false, "message" => "No puede eliminar su propio usuario."], 400);
+        }
+
+        if ($idUsuario <= 0) {
+            $this->jsonResponse(["success" => false, "message" => "ID de usuario inválido."], 400);
+        }
+
+        if ($this->userModel->delete($idUsuario)) {
+            $this->jsonResponse(["success" => true, "message" => "Usuario eliminado correctamente."]);
+        } else {
+            $this->jsonResponse(["success" => false, "message" => "Error al eliminar el usuario."], 500);
+        }
+    }
+
+    // ====================================================================
+    // HELPERS PRIVADOS
+    // ====================================================================
+
+    private function checkAuth()
+    {
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        if (!isUserLoggedIn()) {
+            echo json_encode(["success" => false, "message" => "Acceso no autorizado."]);
+            http_response_code(401);
+            exit;
+        }
+    }
+
+    private function jsonResponse($data, $code = 200)
+    {
+        http_response_code($code);
+        echo json_encode($data);
+        exit;
+    }
 }
