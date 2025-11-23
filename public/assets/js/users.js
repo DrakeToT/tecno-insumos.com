@@ -16,13 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let idUsuarioAccion = null;
     let tipoAccion = null;
 
-    // Variables para orden y paginación
+    // Variables de paginacion y ordenamiento
     let currentSort = "id";
     let currentOrder = "asc";
     let currentPage = 1;
 
-
-    // Fución para mostrar modal de mensajes
+    // Muestra un mensaje en el modal con título y estilo
     function mostrarMensaje(mensaje, titulo = "Error", estilo = "danger") {
         const modalBody = document.getElementById("modalMessageBody");
         const modalTitle = document.getElementById("modalMessageTitle");
@@ -36,18 +35,18 @@ document.addEventListener("DOMContentLoaded", () => {
         modals.message.show();
     }
 
-    // Función para actualizar íconos de orden en encabezados
+    // Actualiza los iconos de ordenamiento en la cabecera de la tabla
     function actualizarIndicadoresOrden(sort, order) {
-        // Ocultar todos
+        // Ocultar todos los iconos
         document.querySelectorAll("#tablaUsuarios thead th.sortable i").forEach(icon => {
             icon.className = "bi bi-caret-up-fill opacity-0"; // invisible, reserva espacio
         });
-        // Quitar data-order de todos
+        // Limpiar atributos data-order
         document.querySelectorAll("#tablaUsuarios thead th.sortable").forEach(th => {
             th.removeAttribute("data-order");
         });
 
-        // Marcar el actual
+        // Resaltar la columna actual
         const th = document.querySelector(`#tablaUsuarios thead th.sortable[data-sort="${sort}"]`);
         if (th) {
             const icon = th.querySelector("i");
@@ -60,20 +59,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Función para cargar usuarios desde el backend
+    // Carga la lista de usuarios desde la API
     async function cargarUsuarios(filtro = "", sort = currentSort, order = currentOrder, page = 1) {
         try {
-            const url = `./api/index.php?action=users&search=${encodeURIComponent(filtro)}&sort=${sort}&order=${order}&page=${page}`;
+            const url = `./api/index.php?users&search=${encodeURIComponent(filtro)}&sort=${sort}&order=${order}&page=${page}`;
             const response = await fetch(url);
-            const data = await response.json();
+            const result = await response.json();
 
-            if (data.success) {
-                renderUsuarios(data.usuarios);
-                renderPaginacion(data.pagination);
-                // Sincronizar estado global (por si vinieron params)
+            if (result.success) {
+                renderUsuarios(result.data);
+                renderPaginacion(result.pagination);
+                // Sincronizar estado
                 currentSort = sort;
                 currentOrder = order;
-                currentPage = data.pagination.currentPage;
+                currentPage = result.pagination.page;
                 // Actualizar íconos de orden
                 actualizarIndicadoresOrden(currentSort, currentOrder);
             } else {
@@ -84,48 +83,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Cargar roles dinámicamente
+    // Carga el select de roles dinamicamente
     async function cargarRoles(selectedId = null) {
         const selectRol = document.getElementById("rolUsuario");
+
+        // Opcion inicial de carga
+        selectRol.innerHTML = "";
         let option = document.createElement('option');
         option.value = "";
         option.disabled = true;
         option.selected = true;
         option.textContent = "Cargando Roles ...";
-        selectRol.innerHTML = "";
         selectRol.appendChild(option);
 
         try {
-            const response = await fetch("./api/index.php?action=roles");
+            const response = await fetch("./api/index.php?roles");
             const data = await response.json();
 
+            // Resetear select
+            selectRol.innerHTML = "";
+            option = document.createElement('option');
+            option.value = "";
+            option.textContent = "Seleccione un rol";
+            selectRol.appendChild(option);
+
             if (data.success && data.roles) {
-                option.textContent = "Seleccione un rol";
-                selectRol.innerHTML = "";
-                selectRol.appendChild(option);
-                if (Array.isArray(data.roles)) {
-                    data.roles.forEach(r => {
-                        option = document.createElement("option");
-                        option.value = r.id;
-                        option.textContent = r.nombre;
-                        if (selectedId && Number(selectedId) === Number(r.id)) {
-                            option.selected = true; // marcar el rol actual
-                        }
-                        selectRol.appendChild(option);
-                    });
-                } else {
-                    option = document.createElement("option");
-                    option.value = data.roles.id;
-                    option.textContent = data.roles.nombre;
-                    if (selectedId && Number(selectedId) === Number(data.roles.id)) {
-                        option.selected = true; // marcar el rol actual
+                const roles = Array.isArray(data.roles) ? data.roles : [data.roles];
+
+                roles.forEach(r => {
+                    const opt = document.createElement("option");
+                    opt.value = r.id;
+                    opt.textContent = r.nombre;
+
+                    if (selectedId && Number(selectedId) === Number(r.id)) {
+                        opt.selected = true;
                     }
-                    selectRol.appendChild(option);
-                }
+                    selectRol.appendChild(opt);
+                });
             } else {
                 option.textContent = "No se pudieron cargar los roles";
-                selectRol.innerHTML = "";
-                selectRol.appendChild(option);
             }
         } catch (err) {
             console.error("Error cargando roles:", err);
@@ -133,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // Función para renderizar la tabla
+    // Renderiza las filas de la tabla de usuarios
     function renderUsuarios(usuarios) {
         tbodyUsuarios.innerHTML = "";
 
@@ -169,22 +165,44 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Renderiza los controles de paginacion
     function renderPaginacion(pagination) {
         const container = document.getElementById("paginationContainer");
         container.innerHTML = "";
 
-        for (let i = 1; i <= pagination.totalPages; i++) {
+        const page = pagination.page;
+        const pages = pagination.pages;
+
+        if (pages <= 1) return;
+
+        // Funcion auxiliar para crear botones
+        const crearBoton = (texto, iconClass, pagDestino, disabled = false, active = false) => {
             const btn = document.createElement("button");
-            btn.textContent = i;
-            btn.className = `btn btn-sm ${i === pagination.currentPage ? "btn-dark" : "btn-outline-dark"} mx-1`;
-            btn.addEventListener("click", () => {
-                cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, i);
-            });
-            container.appendChild(btn);
+            btn.className = `btn btn-sm ${active ? 'btn-dark' : 'btn-outline-dark'} mx-1 border-0`;
+            btn.disabled = disabled;
+            btn.innerHTML = iconClass ? `<i class="${iconClass}"></i>` : texto;
+
+            if (!disabled && !active) {
+                btn.addEventListener("click", () => {
+                    cargarUsuarios(inputBuscarUsuario.value.trim(), currentSort, currentOrder, pagDestino);
+                });
+            }
+            return btn;
+        };
+
+        // Boton Anterior
+        container.appendChild(crearBoton("", "bi bi-chevron-left", page - 1, page <= 1));
+
+        // Botones Numericos
+        for (let i = 1; i <= pages; i++) {
+            container.appendChild(crearBoton(i, null, i, false, i === page));
         }
+
+        // Boton Siguiente
+        container.appendChild(crearBoton("", "bi bi-chevron-right", page + 1, page >= pages));
     }
 
-    // Función para mostrar modal de formulario de usuario
+    // Muestra y configura el modal de usuario (Crear/Editar)
     function mostrarUserForm(modo) {
         if (!modo) return;
 
@@ -192,8 +210,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const title = document.getElementById('modalTitle');
         const textNode = document.createTextNode('');
 
-        title.textContent = ''; // Limpia todo el contenido 
-        icon.className = ''; // Limpia de clases previas
+        // Limpiar contenido previo
+        title.textContent = '';
+        icon.className = '';
         title.appendChild(icon); // Agregamos el elemento <i> eliminado.
 
         if (modo === 'editar') {
@@ -201,10 +220,8 @@ document.addEventListener("DOMContentLoaded", () => {
             textNode.textContent = ' Editar usuario';
             title.appendChild(textNode);
 
-            // Ajustes visuales
+            // Ocultar campo password al editar
             formUsuario.password.closest(".col-md-6").classList.add("d-none");
-
-            modals.userForm.show();
         }
 
         if (modo === 'crear') {
@@ -212,23 +229,22 @@ document.addEventListener("DOMContentLoaded", () => {
             textNode.textContent = ' Nuevo usuario';
             title.appendChild(textNode);
 
-            // Ajustes visuales
+            // Mostrar campo password al crear
             formUsuario.password.closest(".col-md-6").classList.remove("d-none");
-
-            modals.userForm.show();
         }
+
+        modals.userForm.show();
     }
 
-    // Abrir modal de confirmación
+    // Muestra el modal de confirmacion generico
     function abrirConfirmacion(id, accion, mensaje) {
         idUsuarioAccion = id;
         tipoAccion = accion;
         modals.confirm._element.querySelector("#modalConfirmMensaje").textContent = mensaje;
-
         modals.confirm.show();
     }
 
-    // Búsqueda dinámica con debounce
+    // Listener de busqueda con retraso (debounce)
     let debounceTimer;
     inputBuscarUsuario.addEventListener("input", () => {
         clearTimeout(debounceTimer);
@@ -241,13 +257,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 500);
     });
 
-    // Abir formulario para crear un nuevo usuario
+    // Boton para abrir el formulario de creacion de usuario
     btnNewUser.addEventListener("click", () => {
         tipoAccion = 'crear';
         mostrarUserForm(tipoAccion);
     });
 
-    // Crear nuevo usuario o Editar usuario existente
+    // Manejo del envio del formulario (Crear/Editar)
     formUsuario.addEventListener("submit", async e => {
         e.preventDefault();
 
@@ -260,12 +276,12 @@ document.addEventListener("DOMContentLoaded", () => {
             password: formUsuario.password.value.trim()
         };
 
-        // Quita los is-invalid del Formulario
+        // Limpiar errores visuales previos
         formUsuario.querySelectorAll("input, select").forEach(el => {
             el.classList.remove("is-invalid");
         });
 
-        // Validaciones
+        // Validaciones basicas
         let valid = true;
 
         if (!formData.nombre || !formData.apellido || !formData.email || !formData.rol || !formData.estado) {
@@ -283,12 +299,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!valid) return;
 
-        // Si estamos editando, enviamos PUT y quitamos contraseña
+        // Configuracion de la peticion
         const method = tipoAccion === 'editar' ? "PUT" : "POST";
-        const url = "./api/index.php?action=users";
+        const url = "./api/index.php?users";
         if (tipoAccion === 'editar') {
             formData.id = idUsuarioAccion;
-            delete formData.password;
+            delete formData.password; // No enviamos password en edicion general
         }
 
         try {
@@ -319,16 +335,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // Confirmar acción (editar / estado / reset password / eliminar)
+    // Manejo de confirmacion de acciones (Estado, Password, Eliminar)
     modals.confirm._element.querySelector("#modalConfirmBtnAceptar").addEventListener("click", async () => {
         if (!idUsuarioAccion || !tipoAccion) return;
 
         let body = { id: idUsuarioAccion, accion: tipoAccion };
         let method = "PATCH";
 
+        // Caso especial: Carga datos para edicion antes de mostrar formulario
         if (tipoAccion === "editar") {
             try {
-                const response = await fetch(`./api/index.php?action=users&id=${idUsuarioAccion}`);
+                const response = await fetch(`./api/index.php?users&id=${idUsuarioAccion}`);
                 const data = await response.json();
 
                 if (data.success && data.usuario) {
@@ -367,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            const response = await fetch("./api/index.php?action=users", {
+            const response = await fetch("./api/index.php?users", {
                 method: method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body)
@@ -410,7 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Delegación de eventos en tabla
+    // Delegacion de eventos para botones de la tabla
     tbodyUsuarios.addEventListener("click", e => {
         const fila = e.target.closest("tr");
         const id = fila?.dataset.id;
@@ -437,7 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Ordenamiento dinámico en encabezados de tabla (<th>)
+    // Ordenamiento al hacer clic en encabezados de tabla (<th>)
     document.querySelectorAll("#tablaUsuarios thead th.sortable").forEach(th => {
         th.addEventListener("click", () => {
             const sort = th.dataset.sort;
