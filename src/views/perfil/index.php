@@ -38,9 +38,11 @@ $page = 'perfil';
                 <div class="col-md-8">
                     <div class="d-flex justify-content-between mb-3">
                         <h5 class="fw-bold">Datos personales</h5>
-                        <button id="btnEditar" type="button" class="btn btn-outline-dark btn-sm">
-                            <i class="bi bi-pencil-fill"></i> Editar
-                        </button>
+                        <?php if ($puedeEditar): ?>
+                            <button id="btnEditar" type="button" class="btn btn-outline-dark btn-sm">
+                                <i class="bi bi-pencil-fill"></i> Editar Datos
+                            </button>
+                        <?php endif; ?>
                     </div>
 
                     <form id="formDatos" class="needs-validation" novalidate>
@@ -74,14 +76,16 @@ $page = 'perfil';
                                 </div>
                             </div>
                         </div>
-                        <div class="text-end mt-3">
-                            <button id="btnGuardar" type="submit" class="btn btn-success btn-sm d-none">
-                                <i class="bi bi-save"></i> Guardar
-                            </button>
-                            <button id="btnCancelar" type="button" class="btn btn-secondary btn-sm d-none">
-                                <i class="bi bi-x-circle"></i> Cancelar
-                            </button>
-                        </div>
+                        <?php if ($puedeEditar): ?>
+                            <div class="text-end mt-3">
+                                <button id="btnGuardar" type="submit" class="btn btn-success btn-sm d-none">
+                                    <i class="bi bi-check-lg"></i> Guardar Cambios
+                                </button>
+                                <button id="btnCancelar" type="button" class="btn btn-secondary btn-sm d-none">
+                                    <i class="bi bi-x-lg"></i> Cancelar
+                                </button>
+                            </div>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>
@@ -94,4 +98,3 @@ require_once __DIR__ . '/../layouts/modals/modal-password.php';
 
 require_once __DIR__ . '/../layouts/footer.php';
 ?>
-
