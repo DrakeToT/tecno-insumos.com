@@ -100,7 +100,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                             </div>
 
                             <!-- Paginación Equipos -->
-                            <nav aria-label="Navegación equipos" class="d-flex justify-content-end">
+                            <nav aria-label="Navegación equipos" class="d-flex justify-content-center">
                                 <div id="paginationContainer" class="btn-group" role="group"></div>
                             </nav>
                         </div>
