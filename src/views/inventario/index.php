@@ -154,10 +154,6 @@ $extra_js  = ["/assets/js/inventario.js"];
 <!-- =================================================================== -->
 <!-- INCLUDES FINALES -->
 <!-- =================================================================== -->
-<script>
-    // Definimos BASE_URL global para que los archivos JS externos puedan usarla
-    const BASE_URL = "<?= BASE_URL ?>";
-</script>
 
 <?php
 require_once __DIR__ . '/../layouts/templates/template-equipo-row.php';
@@ -165,6 +161,5 @@ require_once __DIR__ . '/../layouts/modals/modal-equipo-form.php';
 require_once __DIR__ . '/../layouts/modals/modal-confirm.php';
 require_once __DIR__ . '/../layouts/modals/modal-message.php';
 
-// Footer del Layout
 require_once __DIR__ . '/../layouts/footer.php';
 ?>
