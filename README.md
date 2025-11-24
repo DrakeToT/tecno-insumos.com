@@ -1,6 +1,15 @@
 # tecno-insumos.com
 Sistema de Gestión de Inventario
 
+Guía rápida:
+- Crear una Base de datos "tecnoinsumos"
+- Cargar el script a la base de datos de la carpeta /_dump
+- Iniciar sesión con los siguientes usuarios: (email - contraseña)
+    admin@tecnoinsumos.com          - Admin123
+    stock@tecnoinsumos.com          - Stock123
+    coordinador@tecnoinsumos.com    - Coordinador123
+    soporte@tecnoinsumos.com        - Soporte123
+
 # Guía de trabajo con ramas de características (`feature/`) en Git
 
 Este documento describe el flujo recomendado para implementar nuevas funcionalidades en el proyecto utilizando la rama `develop` como base y ramas de características (`feature/`) para cada cambio.
