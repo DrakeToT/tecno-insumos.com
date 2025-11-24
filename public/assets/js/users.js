@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             const response = await fetch("./api/index.php?roles");
-            const data = await response.json();
+            const result = await response.json();
 
             // Resetear select
             selectRol.innerHTML = "";
@@ -107,8 +107,8 @@ document.addEventListener("DOMContentLoaded", () => {
             option.textContent = "Seleccione un rol";
             selectRol.appendChild(option);
 
-            if (data.success && data.roles) {
-                const roles = Array.isArray(data.roles) ? data.roles : [data.roles];
+            if (result.success && result.data) {
+                const roles = Array.isArray(result.data) ? result.data : [result.data];
 
                 roles.forEach(r => {
                     const opt = document.createElement("option");
