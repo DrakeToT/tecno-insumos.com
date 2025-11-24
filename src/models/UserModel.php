@@ -40,8 +40,8 @@ class UserModel
     {
         $sql = "
             SELECT 
-                u.id, u.nombre, u.apellido, u.email, u.fotoPerfil,
-                u.fechaAlta, u.estado,
+                u.id, u.nombre, u.apellido, u.email, u.password,
+                u.fotoPerfil, u.fechaAlta, u.estado,
                 r.id AS idRol, r.nombre AS rol
             FROM usuarios u
             JOIN roles r ON u.idRol = r.id
@@ -82,10 +82,10 @@ class UserModel
     public function update(int $id, array $data): bool
     {
         $sql = "
-        UPDATE usuarios 
-        SET nombre = :nombre, apellido = :apellido, email = :email, idRol = :idRol, estado = :estado
-        WHERE id = :id
-    ";
+            UPDATE usuarios 
+            SET nombre = :nombre, apellido = :apellido, email = :email, idRol = :idRol, estado = :estado
+            WHERE id = :id
+        ";
         $stmt = $this->conn->prepare($sql);
 
         $stmt->bindParam(':nombre', $data['nombre'], PDO::PARAM_STR);
@@ -212,8 +212,8 @@ class UserModel
         }
 
         // Consulta las coincidencias según el parámetro search 
-        $sql = 
-        "   SELECT COUNT(*) 
+        $sql = "
+            SELECT COUNT(*) 
             FROM usuarios 
             WHERE nombre LIKE :nombre 
                 OR apellido LIKE :apellido 
