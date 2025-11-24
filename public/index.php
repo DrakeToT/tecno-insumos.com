@@ -44,10 +44,15 @@ switch ($route) {
         $controller = new RolesController();
         $controller->index(); // Valida 'ver_roles'
         exit;
-    
+
     case 'perfil':      // Perfil Usuario
         require_once __DIR__ . '/../src/controllers/ProfileController.php';
         $controller = new ProfileController();
+        $controller->index();
+        exit;
+    case 'inventario':
+        require_once __DIR__ . '/../src/controllers/EquiposController.php';
+        $controller = new EquiposController();
         $controller->index();
         exit;
 }
@@ -64,7 +69,6 @@ $legacyRoutes = [
 
     // Páginas generales
     'inicio'                => __DIR__ . '/../src/views/dashboard/index.php',
-    'inventario'            => __DIR__ . '/../src/views/inventario/index.php',
 
     // Cerrar sesión
     'logout'                => __DIR__ . '/../src/views/auth/logout.php',
