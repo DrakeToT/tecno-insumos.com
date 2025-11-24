@@ -4,7 +4,7 @@
         <td class="align-middle categoria"></td>
         <td class="align-middle marca-modelo"></td>
         <td class="align-middle serie text-muted small"></td>
-        <td class="align-middle estado"><span class="badge"></span></td>
+        <td class="align-middle estado text-center"><span class="badge"></span></td>
         <td class="align-middle ubicacion small"></td>
         <td class="align-middle text-center">
             <button class="btn btn-sm btn-outline-primary btn-editar" title="Editar">

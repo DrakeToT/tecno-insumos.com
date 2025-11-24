@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. CONFIGURACIÓN Y REFERENCIAS DOM
     // ========================================================================
     
-    // URLs de la API (Usando la BASE_URL inyectada desde PHP)
+    // URLs de la API
     const API_URL_EQUIPOS = `./api/index.php?equipos`; 
     const API_URL_CATEGORIAS = `./api/index.php?categorias`;
 
@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectCategoria = formEquipo.querySelector("select[name='id_categoria']");
 
     // Elementos de Modales Genéricos (Confirmación y Mensajes)
-    // Asumimos que existen porque están incluidos en el footer/layout
     const modalConfirmElement = document.querySelector("#modalConfirm");
     const modalConfirm = new bootstrap.Modal(modalConfirmElement);
     const modalMessageElement = document.querySelector("#modalMessage");
@@ -98,25 +97,24 @@ document.addEventListener("DOMContentLoaded", () => {
     /**
      * Obtiene listado de equipos desde la API
      */
-    function cargarEquipos() {
+    async function cargarEquipos() {
         // Construir URL con parámetros query string
         const params = new URLSearchParams({
-            search: estadoApp.busqueda,
-            page: estadoApp.paginaActual,
-            limit: estadoApp.limite,
-            sort: estadoApp.columnaOrden,
-            order: estadoApp.orden
+            "&search": estadoApp.busqueda,
+            "&page": estadoApp.paginaActual,
+            "&limit": estadoApp.limite,
+            "&sort": estadoApp.columnaOrden,
+            "&order": estadoApp.orden
         });
 
-        fetch(`${API_URL_EQUIPOS}&${params.toString()}`)
-            .then(response => response.json())
-            .then(data => {
-                renderizarTabla(data);
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                mostrarMensaje("Error de conexión al cargar equipos.", "Error", "danger");
-            });
+        try {
+            const response = await fetch(`${API_URL_EQUIPOS}&${params.toString()}`);
+            const result = await response.json();
+            renderizarTabla(result);
+        } catch (error) {
+            console.error("Error:", error);
+            mostrarMensaje("Error de conexión al cargar equipos.", "Error", "danger");
+        }
     }
 
     /**
@@ -125,10 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function cargarCategorias() {
         fetch(API_URL_CATEGORIAS)
             .then(r => r.json())
-            .then(data => {
-                if (data.success) {
+            .then(result => {
+                if (result.success) {
                     selectCategoria.innerHTML = '<option value="">Seleccione una categoría</option>';
-                    data.data.forEach(cat => {
+                    result.data.forEach(cat => {
                         selectCategoria.add(new Option(cat.nombre, cat.id));
                     });
                 }
@@ -223,19 +221,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // 4. RENDERIZADO UI
     // ========================================================================
 
-    function renderizarTabla(data) {
+    function renderizarTabla(inventario) {
         tbodyEquipos.innerHTML = "";
         actualizarIndicadoresOrden();
 
         // Caso tabla vacía o error
-        if (!data.success || !data.data || data.data.length === 0) {
+        if (!inventario.success || !inventario.data || inventario.data.length === 0) {
             tbodyEquipos.appendChild(templateNull.content.cloneNode(true));
             paginationContainer.innerHTML = "";
             return;
         }
 
         // Renderizar filas
-        data.data.forEach(equipo => {
+        inventario.data.forEach(equipo => {
             const clone = templateRow.content.cloneNode(true);
             
             // Llenar datos
@@ -256,7 +254,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 'En reparacion': 'bg-warning text-dark',
                 'Baja': 'bg-danger'
             };
-            badge.classList.add(clasesMap[equipo.estado] || 'bg-secondary');
+            // Obtenemos la clase o usamos el default
+            const claseEstado = clasesMap[equipo.estado] || 'bg-secondary';
+            
+            // Asignamos el string completo a className
+            badge.className = `badge ${claseEstado}`;
 
             // Botones de acción
             clone.querySelector(".btn-editar").addEventListener("click", () => abrirModalEditar(equipo.id));
@@ -265,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tbodyEquipos.appendChild(clone);
         });
 
-        renderizarPaginacion(data.pagination);
+        renderizarPaginacion(inventario.pagination);
     }
 
     function renderizarPaginacion(pagination) {
@@ -311,8 +313,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const thActivo = document.querySelector(`.sortable[data-sort="${estadoApp.columnaOrden}"] i`);
         if (thActivo) {
             thActivo.className = estadoApp.orden === "ASC" 
-                ? "bi bi-caret-up-fill" 
-                : "bi bi-caret-down-fill";
+                ? "bi bi-caret-up-fill text-warning" 
+                : "bi bi-caret-down-fill text-warning";
         }
     }
 
