@@ -34,17 +34,21 @@ if ($user && $route === 'home') {
 // Estas rutas instancian un controlador que verifica permisos antes de cargar la vista.
 
 switch ($route) {
-    // Módulo Usuarios
-    case 'usuarios':
+    case 'usuarios':    // Módulo Usuarios
         require_once __DIR__ . '/../src/controllers/UsersController.php';
         $controller = new UsersController();
         $controller->index(); // Valida 'ver_usuarios'
         exit;
-    // Módulo Roles
-    case 'roles':
+    case 'roles':       // Módulo Roles
         require_once __DIR__ . '/../src/controllers/RolesController.php';
         $controller = new RolesController();
         $controller->index(); // Valida 'ver_roles'
+        exit;
+    
+    case 'perfil':      // Perfil Usuario
+        require_once __DIR__ . '/../src/controllers/ProfileController.php';
+        $controller = new ProfileController();
+        $controller->index();
         exit;
 }
 
@@ -60,7 +64,6 @@ $legacyRoutes = [
 
     // Páginas generales
     'inicio'                => __DIR__ . '/../src/views/dashboard/index.php',
-    'perfil'                => __DIR__ . '/../src/views/perfil/index.php',
     'inventario'            => __DIR__ . '/../src/views/inventario/index.php',
 
     // Cerrar sesión

@@ -101,6 +101,22 @@ if (isset($_GET['roles'])) {
 }
 
 // =============================================================
+// RECURSO: PERFIL (?perfil)
+// =============================================================
+if (isset($_GET['perfil'])) {
+    require_once __DIR__ . '/../../src/controllers/ProfileController.php';
+    $controller = new ProfileController();
+    switch ($method) {
+        case 'GET':   $controller->getProfile(); break;     // Obtener datos
+        case 'PUT':   $controller->updateData(); break;     // Editar datos
+        case 'PATCH': $controller->changePassword(); break; // Cambiar password
+        case 'POST':  $controller->uploadPhoto(); break;    // Subir foto
+        default: sendMethodNotAllowed(); break;
+    }
+    exit;
+}
+
+// =============================================================
 // COMPATIBILIDAD LEGACY (Usuarios/Roles/Auth siguen con ?action=)
 // =============================================================
 $action = $_GET['action'] ?? '';
