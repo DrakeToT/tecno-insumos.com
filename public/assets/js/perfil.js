@@ -12,16 +12,25 @@ function mostrarMensajeModal(mensaje, titulo = "Error", estilo = "danger") {
     modal.show();
 }
 
-// Función auxiliar para recargar datos
+// URL API BASE
+const API_PERFIL = "./api/index.php?perfil";
+
+// Función para cargar datos
 async function cargarDatosUsuario() {
     try {
-        const response = await fetch("./api/index.php?action=perfil");
+        const response = await fetch(API_PERFIL);
         const data = await response.json();
         if (data.success) {
             const u = data.user;
-            document.getElementById("nombrePerfil").value = u.nombre;
-            document.getElementById("apellidoPerfil").value = u.apellido;
-            document.getElementById("emailPerfil").value = u.email;
+            // Actualizamos valores solo si los elementos existen
+            const inputNombre = document.getElementById("nombrePerfil");
+            if (inputNombre) inputNombre.value = u.nombre;
+
+            const inputApellido = document.getElementById("apellidoPerfil");
+            if (inputApellido) inputApellido.value = u.apellido;
+
+            const inputEmail = document.getElementById("emailPerfil");
+            if (inputEmail) inputEmail.value = u.email;
         }
     } catch (err) {
         console.error("Error recargando perfil:", err);
@@ -36,37 +45,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     const inputFoto = document.getElementById("inputFoto");
     const formFoto = document.getElementById("formFoto");
 
-    // Abrir selector de archivo al hacer click
-    [fotoPerfil, overlayEditar].forEach(el =>
-        el.addEventListener("click", () => inputFoto.click())
-    );
+    // === Lógica de cambio de foto de perfil ===
+    if (fotoPerfil && inputFoto) {
+        // Abrir selector de archivo al hacer click
+        [fotoPerfil, overlayEditar].forEach(el =>
+            el?.addEventListener("click", () => inputFoto.click())
+        );
+        // Enviar automáticamente al seleccionar archivo
+        inputFoto.addEventListener("change", async () => {
+            const formData = new FormData(formFoto);
+            if (formData.get("fotoPerfil").size === 0) return;
 
-    // Enviar automáticamente al seleccionar archivo
-    inputFoto.addEventListener("change", async () => {
-        const formData = new FormData(formFoto);
-        const archivo = formData.get("fotoPerfil");
-        if (archivo.size === 0) return;
+            try {
+                const response = await fetch(API_PERFIL, { method: "POST", body: formData });
+                const data = await response.json();
 
-        try {
-            const response = await fetch("./api/index.php?action=perfil", {
-                method: "POST",
-                body: formData
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                fotoPerfil.src = URL.createObjectURL(archivo); // actualiza sin recargar
-                fotoNavBody.src = fotoPerfil.src;
-                fotoNavHeader.src = fotoPerfil.src;
+                if (data.success) {
+                    const nuevaUrl = URL.createObjectURL(formData.get("fotoPerfil"));
+                    fotoPerfil.src = nuevaUrl;  // actualiza sin recargar
+                    if (fotoNavBody) fotoNavBody.src = nuevaUrl;
+                    if (fotoNavHeader) fotoNavHeader.src = nuevaUrl;
+                    mostrarMensajeModal("Foto actualizada correctamente.", "Éxito", "success");
+                } else {
+                    mostrarMensajeModal(data.message, "Error Foto", "warning");
+                }
+            } catch {
+                mostrarMensajeModal("Error al subir la imagen.");
             }
-        } catch {
-            mostrarMensajeModal("Error al subir la imagen.");
-        }
-    });
+        });
+    }
 
     // Cargar datos del usuario
     try {
-        const response = await fetch("./api/index.php?action=perfil");
+        const response = await fetch(API_PERFIL);
         const data = await response.json();
         if (data.success) {
             const u = data.user;
@@ -82,153 +93,136 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // === Lógica de edición de datos personales ===
-    const formDatos = document.getElementById("formDatos");
     const btnEditar = document.getElementById("btnEditar");
     const btnGuardar = document.getElementById("btnGuardar");
     const btnCancelar = document.getElementById("btnCancelar");
-
+    const formDatos = document.getElementById("formDatos");
     const camposEditables = ["nombrePerfil", "apellidoPerfil", "emailPerfil"];
 
-    // Habilitar edición
-    btnEditar.addEventListener("click", () => {
-        camposEditables.forEach(id => {
-            document.getElementById(id).removeAttribute("readonly");
-        });
-        btnEditar.classList.add("d-none");
-        btnGuardar.classList.remove("d-none");
-        btnCancelar.classList.remove("d-none");
-    });
-
-    // Cancelar edición (restaurar valores)
-    btnCancelar.addEventListener("click", async () => {
-        await cargarDatosUsuario();
-        camposEditables.forEach(id => {
-            document.getElementById(id).setAttribute("readonly", true);
-        });
-        btnEditar.classList.remove("d-none");
-        btnGuardar.classList.add("d-none");
-        btnCancelar.classList.add("d-none");
-    });
-
-    // Guardar cambios
-    formDatos.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const nombre = document.getElementById("nombrePerfil").value.trim();
-        const apellido = document.getElementById("apellidoPerfil").value.trim();
-        const email = document.getElementById("emailPerfil").value.trim();
-
-        try {
-            const response = await fetch("./api/index.php?action=perfil", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre, apellido, email })
+    if (btnEditar) {
+        btnEditar.addEventListener("click", () => {
+            camposEditables.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.removeAttribute("readonly");
+                    el.classList.remove("bg-light"); // Visual feedback
+                }
             });
-            const data = await response.json();
-            mostrarMensajeModal(data.message, "Datos Personales - Edición", data.success ? "success" : "danger");
-            if (data.success) {
-                btnCancelar.click(); // Restablece los botones
+            btnEditar.classList.add("d-none");
+            btnGuardar.classList.remove("d-none");
+            btnCancelar.classList.remove("d-none");
+        });
+
+        btnCancelar.addEventListener("click", async () => {
+            await cargarDatosUsuario(); // Restaurar datos originales
+            camposEditables.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.setAttribute("readonly", true);
+                    el.classList.add("bg-light");
+                }
+            });
+            btnEditar.classList.remove("d-none");
+            btnGuardar.classList.add("d-none");
+            btnCancelar.classList.add("d-none");
+        });
+
+        formDatos.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById("nombrePerfil").value.trim();
+            const apellido = document.getElementById("apellidoPerfil").value.trim();
+            const email = document.getElementById("emailPerfil").value.trim();
+
+            try {
+                const response = await fetch(API_PERFIL, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nombre, apellido, email })
+                });
+                const data = await response.json();
+
+                mostrarMensajeModal(data.message, "Datos Personales", data.success ? "success" : "danger");
+
+                if (data.success) {
+                    btnCancelar.click(); // Re-bloquear campos
+                }
+            } catch {
+                mostrarMensajeModal("Error al guardar los cambios.");
             }
-        } catch {
-            mostrarMensajeModal("Error al guardar los cambios.");
-        }
-    });
+        });
+    }
 
     // === Cambio de contraseña con invalid-feedback ===
     const formPassword = document.getElementById("formPassword");
-
-    formPassword.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        // Obtener inputs y feedbacks
-        const actualPassword = document.getElementById("actualPassword");
-        const newPassword = document.getElementById("newPassword");
-        const confirmPassword = document.getElementById("confirmPassword");
-
-        const feedbackActual = document.getElementById("feedbackActual");
-        const feedbackNueva = document.getElementById("feedbackNueva");
-        const feedbackConfirmar = document.getElementById("feedbackConfirmar");
-
-        // Resetear estados previos
-        [actualPassword, newPassword, confirmPassword].forEach(input => {
-            input.classList.remove("is-invalid");
-        });
-        [feedbackActual, feedbackNueva, feedbackConfirmar].forEach(fb => fb.textContent = "");
-
-        // Validaciones del lado del cliente
-        let valid = true;
-
-        if (!actualPassword.value.trim()) {
-            actualPassword.classList.add("is-invalid");
-            feedbackActual.textContent = "Debe ingresar su contraseña actual.";
-            valid = false;
-        }
-
-        if (!newPassword.value.trim()) {
-            newPassword.classList.add("is-invalid");
-            feedbackNueva.textContent = "Debe ingresar una nueva contraseña.";
-            valid = false;
-        } else if (newPassword.value.length < 8) {
-            newPassword.classList.add("is-invalid");
-            feedbackNueva.textContent = "La nueva contraseña debe tener al menos 8 caracteres.";
-            valid = false;
-        }
-
-        if (confirmPassword.value.trim() !== newPassword.value.trim()) {
-            confirmPassword.classList.add("is-invalid");
-            feedbackConfirmar.textContent = "Las contraseñas no coinciden.";
-            valid = false;
-        }
-
-        if (!valid) return;
-
-        // Enviar datos al servidor
-        try {
-            const response = await fetch("./api/index.php?action=perfil", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    actualPassword: actualPassword.value.trim(),
-                    newPassword: newPassword.value.trim()
-                })
-            });
-
-            const data = await response.json();
-
-            if (!data.success) {
-                // Mostrar errores específicos del servidor
-                actualPassword.classList.add("is-invalid");
-                feedbackActual.textContent = data.message || "Error al actualizar la contraseña.";
-                return;
-            }
-
-            // Éxito
-            formPassword.reset();
-            const modal = bootstrap.Modal.getInstance(document.getElementById("modalPassword"));
-            modal.hide();
-            mostrarMensajeModal("Contraseña actualizada correctamente.", "Cambio de contraseña - Exitoso", "success");
-
-        } catch (error) {
-            mostrarMensajeModal("Error de conexión con el servidor.", "Cambio de contraseña - Error", "danger");
-        }
-    });
-
-    // === Resetear el modal de contraseña al cerrarse ===
     const modalPasswordEl = document.getElementById("modalPassword");
 
-    modalPasswordEl.addEventListener("hidden.bs.modal", () => {
-        // Limpiar los valores
-        formPassword.reset();
+    if (formPassword) {
+        formPassword.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-        // Quitar estados de validación
-        formPassword.querySelectorAll(".is-invalid, .is-valid").forEach(input => {
-            input.classList.remove("is-invalid", "is-valid");
+            const actual = document.getElementById("actualPassword");
+            const nueva = document.getElementById("newPassword");
+            const confirm = document.getElementById("confirmPassword");
+            const fbActual = document.getElementById("feedbackActual");
+            const fbNueva = document.getElementById("feedbackNueva");
+            const fbConfirm = document.getElementById("feedbackConfirmar");
+
+            // Reset visual
+            [actual, nueva, confirm].forEach(i => i.classList.remove("is-invalid"));
+            [fbActual, fbNueva, fbConfirm].forEach(fb => fb.textContent = "");
+
+            let valid = true;
+
+            if (!actual.value.trim()) {
+                actual.classList.add("is-invalid");
+                fbActual.textContent = "Requerido.";
+                valid = false;
+            }
+            if (nueva.value.length < 8) {
+                nueva.classList.add("is-invalid");
+                fbNueva.textContent = "Mínimo 8 caracteres.";
+                valid = false;
+            }
+            if (confirm.value !== nueva.value) {
+                confirm.classList.add("is-invalid");
+                fbConfirm.textContent = "Las contraseñas deben coincidir.";
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            try {
+                const response = await fetch(API_PERFIL, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        actualPassword: actual.value.trim(),
+                        newPassword: nueva.value.trim()
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    // Si falla, asumimos que es la pass actual
+                    actual.classList.add("is-invalid");
+                    fbActual.textContent = data.message;
+                } else {
+                    formPassword.reset();
+                    const modal = bootstrap.Modal.getInstance(modalPasswordEl);
+                    modal.hide();
+                    mostrarMensajeModal("Contraseña actualizada.", "Cambio de Contraseña", "success");
+                }
+            } catch {
+                mostrarMensajeModal("Error de conexión.");
+            }
         });
 
-        // Limpiar mensajes de feedback
-        formPassword.querySelectorAll(".invalid-feedback").forEach(fb => {
-            fb.textContent = "";
+        modalPasswordEl.addEventListener("hidden.bs.modal", () => {
+            formPassword.reset();
+            formPassword.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+            formPassword.querySelectorAll(".invalid-feedback").forEach(el => el.textContent = "");
         });
-    });
+    }
 
 });
