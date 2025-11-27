@@ -19,7 +19,7 @@
 
 <template id="equipoRowNullTemplate">
     <tr>
-        <td colspan="7" class="text-center text-muted py-4">
+        <td colspan="100%" class="text-center text-muted py-4">
             <i class="bi bi-inbox h4 d-block"></i>
             No se encontraron equipos.
         </td>
