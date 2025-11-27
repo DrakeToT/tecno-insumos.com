@@ -60,7 +60,7 @@ $extra_js  = ["/assets/js/inventario.js"];
             <div class="tab-content" id="inventarioTabsContent">
 
                 <!-- ======================================================= -->
-                <!-- TAB 1: EQUIPOS (Tu código actual mejorado) -->
+                <!-- TAB 1: EQUIPOS INFORMÁTICOS -->
                 <!-- ======================================================= -->
                 <div class="tab-pane fade show active" id="equipos" role="tabpanel" aria-labelledby="equipos-tab">
                     <div class="card mb-4 rounded-end rounded-top-0">
@@ -73,26 +73,26 @@ $extra_js  = ["/assets/js/inventario.js"];
                         <div class="card-body">
                             <!-- Filtros Equipos -->
                             <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                        <input type="text" id="buscarEquipo" class="form-control" placeholder="Buscar por código, serie, marca...">
-                                    </div>
+
+                                <div class="input-group">
+                                    <span class="input-group-text border-dark-subtle"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="buscarEquipo" class="border-dark-subtle focus-ring focus-ring-dark form-control" placeholder="Buscar por código, serie, marca...">
                                 </div>
+
                             </div>
 
                             <!-- Tabla Equipos -->
                             <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover" id="tablaEquipos" width="100%" cellspacing="0">
+                                <table class="table table-striped table-hover" id="tablaEquipos" width="100%" cellspacing="0">
                                     <thead class="table-dark">
                                         <tr>
-                                            <th class="sortable" data-sort="codigo_inventario" role="button">Código <i class="bi bi-caret-up-fill opacity-0"></i></th>
-                                            <th class="sortable" data-sort="categoria" role="button">Categoría <i class="bi bi-caret-up-fill opacity-0"></i></th>
-                                            <th class="sortable" data-sort="marca" role="button">Marca/Modelo <i class="bi bi-caret-up-fill opacity-0"></i></th>
+                                            <th class="sortable text-nowrap" data-sort="codigo_inventario" role="button">Código <i class="bi bi-caret-up-fill opacity-0"></i></th>
+                                            <th class="sortable text-nowrap" data-sort="categoria" role="button">Categoría <i class="bi bi-caret-up-fill opacity-0"></i></th>
+                                            <th class="sortable text-nowrap" data-sort="marca" role="button">Marca/Modelo <i class="bi bi-caret-up-fill opacity-0"></i></th>
                                             <th>Serie</th>
-                                            <th class="sortable" data-sort="estado" role="button">Estado <i class="bi bi-caret-up-fill opacity-0"></i></th>
+                                            <th class="sortable text-nowrap text-center" data-sort="estado" role="button">Estado <i class="bi bi-caret-up-fill opacity-0"></i></th>
                                             <th>Ubicación</th>
-                                            <th>Acciones</th>
+                                            <th class="text-center user-select-none text-nowrap">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody><!-- JS: equipoRowTemplate --></tbody>
@@ -100,9 +100,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                             </div>
 
                             <!-- Paginación Equipos -->
-                            <nav aria-label="Navegación equipos" class="d-flex justify-content-center">
-                                <div id="paginationContainer" class="btn-group" role="group"></div>
-                            </nav>
+                            <nav id="paginationEquipos" aria-label="Navegación equipos" class="mt-3 d-flex justify-content-center"></nav>
                         </div>
                     </div>
                 </div>
@@ -113,7 +111,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                 <div class="tab-pane fade" id="insumos" role="tabpanel" aria-labelledby="insumos-tab">
                     <div class="card mb-4 rounded-end rounded-top-0">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
-                            <div class="fw-bold">Stock de Insumos (Toners, Repuestos)</div>
+                            <div class="fw-bold">Stock de Insumos</div>
                             <button type="button" class="btn btn-success btn-sm" onclick="alert('Próximamente: Módulo Insumos')">
                                 <i class="bi bi-plus-circle"></i> Nuevo Insumo
                             </button>
@@ -132,7 +130,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                 <div class="tab-pane fade" id="consumibles" role="tabpanel" aria-labelledby="consumibles-tab">
                     <div class="card mb-4 rounded-end rounded-top-0">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
-                            <div class="fw-bold">Consumibles (Papel, Tintas, Cables)</div>
+                            <div class="fw-bold">Consumibles (Papel, Tintas, Etc)</div>
                             <button type="button" class="btn btn-success text-white btn-sm" onclick="alert('Próximamente: Módulo Consumibles')">
                                 <i class="bi bi-plus-circle"></i> Nuevo Consumible
                             </button>
