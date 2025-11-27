@@ -89,9 +89,9 @@ $extra_js  = ["/assets/js/inventario.js"];
                                             <th class="sortable text-nowrap" data-sort="codigo_inventario" role="button">Código <i class="bi bi-caret-up-fill opacity-0"></i></th>
                                             <th class="sortable text-nowrap" data-sort="categoria" role="button">Categoría <i class="bi bi-caret-up-fill opacity-0"></i></th>
                                             <th class="sortable text-nowrap" data-sort="marca" role="button">Marca/Modelo <i class="bi bi-caret-up-fill opacity-0"></i></th>
-                                            <th>Serie</th>
+                                            <th class="user-select-none">Serie</th>
                                             <th class="sortable text-nowrap text-center" data-sort="estado" role="button">Estado <i class="bi bi-caret-up-fill opacity-0"></i></th>
-                                            <th>Ubicación</th>
+                                            <th class="user-select-none">Ubicación</th>
                                             <th class="text-center user-select-none text-nowrap">Acciones</th>
                                         </tr>
                                     </thead>
