@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     // ========================================================================
-    // 1. CONFIGURACIÓN Y REFERENCIAS DOM
+    // CONFIGURACIÓN Y REFERENCIAS DOM
     // ========================================================================
     
     // URLs de la API
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tbodyEquipos = document.querySelector("#tablaEquipos tbody");
     const inputBuscar = document.querySelector("#buscarEquipo");
     const btnNewEquipo = document.querySelector("#btnNewEquipo");
-    const paginationContainer = document.querySelector("#paginationContainer");
+    const paginationEquipos = document.querySelector("#paginationEquipos");
 
     // Elementos del Modal Formulario
     const modalElement = document.querySelector("#modalEquipoForm");
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let debounceTimer;
 
     // ========================================================================
-    // 2. INICIALIZACIÓN
+    // INICIALIZACIÓN
     // ========================================================================
     
     init();
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ========================================================================
-    // 3. LÓGICA DE NEGOCIO (CRUD)
+    // LÓGICA DE NEGOCIO (CRUD)
     // ========================================================================
 
     /**
@@ -100,17 +100,17 @@ document.addEventListener("DOMContentLoaded", () => {
     async function cargarEquipos() {
         // Construir URL con parámetros query string
         const params = new URLSearchParams({
-            "&search": estadoApp.busqueda,
-            "&page": estadoApp.paginaActual,
-            "&limit": estadoApp.limite,
-            "&sort": estadoApp.columnaOrden,
-            "&order": estadoApp.orden
+            "search": estadoApp.busqueda,
+            "page": estadoApp.paginaActual,
+            "limit": estadoApp.limite,
+            "sort": estadoApp.columnaOrden,
+            "order": estadoApp.orden
         });
 
         try {
             const response = await fetch(`${API_URL_EQUIPOS}&${params.toString()}`);
             const result = await response.json();
-            renderizarTabla(result);
+            renderizarTabla(result, paginationEquipos);
         } catch (error) {
             console.error("Error:", error);
             mostrarMensaje("Error de conexión al cargar equipos.", "Error", "danger");
@@ -125,7 +125,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(r => r.json())
             .then(result => {
                 if (result.success) {
-                    selectCategoria.innerHTML = '<option value="">Seleccione una categoría</option>';
+                    let option = new Option("Seleccione una categoría", "", true, true);
+                    option.disabled = true;
+                    selectCategoria.innerHTML = '';
+                    selectCategoria.add(option);
                     result.data.forEach(cat => {
                         selectCategoria.add(new Option(cat.nombre, cat.id));
                     });
@@ -181,18 +184,18 @@ document.addEventListener("DOMContentLoaded", () => {
      * Elimina un equipo
      */
     function eliminarEquipo(equipo) {
-        // 1. Configurar Modal de Confirmación
+        // Configurar Modal de Confirmación
         document.querySelector("#modalConfirmMensaje").textContent = 
             `¿Confirma que desea eliminar el equipo "${equipo.marca} ${equipo.modelo}" (Cod: ${equipo.codigo_inventario})?`;
         
         modalConfirm.show();
 
-        // 2. Configurar botón "Aceptar" (clonarlo para limpiar listeners viejos)
+        // Configurar botón "Aceptar" (clonarlo para limpiar listeners viejos)
         const btnAceptar = document.querySelector("#modalConfirmBtnAceptar");
         const nuevoBtn = btnAceptar.cloneNode(true);
         btnAceptar.parentNode.replaceChild(nuevoBtn, btnAceptar);
 
-        // 3. Acción al confirmar
+        // Acción al confirmar
         nuevoBtn.addEventListener("click", async () => {
             modalConfirm.hide();
             
@@ -218,17 +221,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ========================================================================
-    // 4. RENDERIZADO UI
+    // RENDERIZADO UI
     // ========================================================================
 
-    function renderizarTabla(inventario) {
+    function renderizarTabla(inventario, paginationContainer) {
         tbodyEquipos.innerHTML = "";
         actualizarIndicadoresOrden();
 
         // Caso tabla vacía o error
         if (!inventario.success || !inventario.data || inventario.data.length === 0) {
             tbodyEquipos.appendChild(templateNull.content.cloneNode(true));
-            paginationContainer.innerHTML = "";
+            paginationEquipos.innerHTML = "";
             return;
         }
 
@@ -267,20 +270,20 @@ document.addEventListener("DOMContentLoaded", () => {
             tbodyEquipos.appendChild(clone);
         });
 
-        renderizarPaginacion(inventario.pagination);
+        renderizarPaginacion(inventario.pagination, paginationContainer);
     }
 
-    function renderizarPaginacion(pagination) {
-        paginationContainer.innerHTML = "";
+    function renderizarPaginacion(pagination, paginationContainer) {
+        if (!paginationContainer) return;
+        paginationContainer.innerHTML = "";        
+        
         const { page, pages } = pagination;
-
         if (pages <= 1) return;
 
         // Generar botones (Anterior, Números, Siguiente)
-        // Nota: Se puede refactorizar a una función auxiliar si crece mucho
         const crearBoton = (texto, iconClass, pagDestino, disabled = false, active = false) => {
             const btn = document.createElement("button");
-            btn.className = `btn btn-sm ${active ? 'btn-dark' : 'btn-outline-dark'}`;
+            btn.className = `btn btn-sm ${active ? 'btn-dark' : 'btn-outline-dark'} mx-1 border-0`;
             btn.disabled = disabled;
             btn.innerHTML = iconClass ? `<i class="${iconClass}"></i>` : texto;
             
@@ -319,7 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ========================================================================
-    // 5. MODALES AUXILIARES
+    // MODALES AUXILIARES
     // ========================================================================
 
     function abrirModalCrear() {
