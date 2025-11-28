@@ -5,17 +5,20 @@ require_once __DIR__ . '/../helpers/session.php';
 require_once __DIR__ . '/../helpers/sanitize.php';
 require_once __DIR__ . '/../helpers/permisos.php';
 
-class EquiposController {
+class EquiposController
+{
     private $equipoModel;
     private $categoriaModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->equipoModel = new EquipoModel();
         $this->categoriaModel = new CategoriaModel();
     }
 
     // Renderiza la vista (HTML)
-    public function index() {
+    public function index()
+    {
         if (!isUserLoggedIn()) {
             header('Location: ' . BASE_URL);
             exit;
@@ -38,7 +41,8 @@ class EquiposController {
      * GET ?equipos
      * Obtiene listado con filtros y paginación
      */
-    public function getAll() {
+    public function getAll()
+    {
         $this->checkAuth();
 
         if (!Permisos::tienePermiso('ver_inventario')) {
@@ -49,12 +53,13 @@ class EquiposController {
         $sort   = sanitizeInput($_GET['sort'] ?? 'id');
         $order  = sanitizeInput($_GET['order'] ?? 'ASC');
         $limit  = isset($_GET['limit']) ? sanitizeInt($_GET['limit']) : 10;
-        $offset = isset($_GET['offset']) ? sanitizeInt($_GET['offset']) : 0;
+        $page   = isset($_GET['page']) ? sanitizeInt($_GET['page']) : 1;
+        $offset = ($page - 1) * $limit;
 
         try {
             $data = $this->equipoModel->getAll($search, $sort, $order, $limit, $offset);
             $total = $this->equipoModel->countAll($search);
-            
+
             $this->jsonResponse([
                 'success' => true,
                 'data' => $data,
@@ -74,7 +79,8 @@ class EquiposController {
      * GET ?equipos&id=X
      * Obtiene un solo recurso
      */
-    public function getOne() {
+    public function getOne()
+    {
         $this->checkAuth();
 
         if (!Permisos::tienePermiso('ver_inventario')) {
@@ -83,7 +89,7 @@ class EquiposController {
 
         $id = isset($_GET['id']) ? sanitizeInt($_GET['id']) : 0;
         $equipo = $this->equipoModel->getById($id);
-        
+
         if ($equipo) {
             $this->jsonResponse(['success' => true, 'data' => $equipo]);
         } else {
@@ -94,7 +100,8 @@ class EquiposController {
     /**
      * GET ?categorias
      */
-    public function getCategorias() {
+    public function getCategorias()
+    {
         $this->checkAuth();
 
         if (!Permisos::tienePermiso('ver_inventario')) {
@@ -113,7 +120,8 @@ class EquiposController {
      * POST ?equipos
      * Crea un nuevo recurso
      */
-    public function create() {
+    public function create()
+    {
         $this->checkAuth();
 
         if (!Permisos::tienePermiso('crear_equipos')) {
@@ -126,7 +134,7 @@ class EquiposController {
 
         // Sanitizar y Validar
         $data = $this->sanitizeData($dataRaw);
-        
+
         if (empty($data['codigo_inventario']) || empty($data['marca']) || $data['id_categoria'] <= 0) {
             $this->jsonResponse(['success' => false, 'message' => 'Complete los campos obligatorios'], 400);
         }
@@ -150,7 +158,8 @@ class EquiposController {
      * PUT ?equipos
      * Actualiza un recurso existente
      */
-    public function update() {
+    public function update()
+    {
         $this->checkAuth();
 
         if (!Permisos::tienePermiso('editar_equipos')) {
@@ -186,7 +195,8 @@ class EquiposController {
     /**
      * DELETE ?equipos
      */
-    public function delete() {
+    public function delete()
+    {
         $this->checkAuth();
 
         if (!Permisos::tienePermiso('eliminar_equipos')) {
@@ -211,7 +221,8 @@ class EquiposController {
     // HELPERS PRIVADOS
     // ====================================================================
 
-    private function checkAuth() {
+    private function checkAuth()
+    {
         if (!headers_sent()) {
             header('Content-Type: application/json; charset=utf-8');
         }
@@ -222,7 +233,8 @@ class EquiposController {
         }
     }
 
-    private function jsonResponse($data, $code = 200) {
+    private function jsonResponse($data, $code = 200)
+    {
         http_response_code($code);
         echo json_encode($data);
         exit;
@@ -231,7 +243,8 @@ class EquiposController {
     /**
      * Centraliza la limpieza de datos para Create y Update
      */
-    private function sanitizeData($raw) {
+    private function sanitizeData($raw)
+    {
         return [
             'codigo_inventario' => sanitizeInput($raw['codigo_inventario'] ?? ''),
             'id_categoria'      => sanitizeInt($raw['id_categoria'] ?? 0),
@@ -247,4 +260,3 @@ class EquiposController {
         ];
     }
 }
-?>

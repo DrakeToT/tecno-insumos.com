@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     estadoApp.columnaOrden = columna;
                     estadoApp.orden = "ASC";
                 }
+                estadoApp.paginaActual = 1; // Reset a página 1
                 cargarEquipos();
             });
         });
