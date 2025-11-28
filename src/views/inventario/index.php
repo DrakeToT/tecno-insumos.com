@@ -109,7 +109,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                 <!-- TAB 2: INSUMOS (Placeholder para futuro desarrollo) -->
                 <!-- ======================================================= -->
                 <div class="tab-pane fade" id="insumos" role="tabpanel" aria-labelledby="insumos-tab">
-                    <div class="card mb-4 rounded-end rounded-top-0">
+                    <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
                             <div class="fw-bold">Stock de Insumos</div>
                             <button type="button" class="btn btn-success btn-sm" onclick="alert('Próximamente: Módulo Insumos')">
@@ -128,7 +128,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                 <!-- TAB 3: CONSUMIBLES (Placeholder para futuro desarrollo) -->
                 <!-- ======================================================= -->
                 <div class="tab-pane fade" id="consumibles" role="tabpanel" aria-labelledby="consumibles-tab">
-                    <div class="card mb-4 rounded-end rounded-top-0">
+                    <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
                             <div class="fw-bold">Consumibles (Papel, Tintas, Etc)</div>
                             <button type="button" class="btn btn-success text-white btn-sm" onclick="alert('Próximamente: Módulo Consumibles')">
