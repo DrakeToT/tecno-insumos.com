@@ -7,7 +7,7 @@
         <td class="align-middle estado text-center"><span class="badge"></span></td>
         <td class="align-middle ubicacion small"></td>
         <td class="align-middle text-nowrap text-center">
-            <button class="btn btn-sm btn-outline-primary btn-editar" title="Editar">
+            <button class="btn btn-sm btn-outline-primary btn-editar" title="Mostrar / Editar">
                 <i class="bi bi-pencil-square"></i>
             </button>
             <button class="btn btn-sm btn-outline-danger btn-eliminar" title="Eliminar">
