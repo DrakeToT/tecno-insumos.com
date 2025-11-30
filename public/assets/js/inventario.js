@@ -3,9 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // ========================================================================
     // CONFIGURACIÓN Y REFERENCIAS DOM
     // ========================================================================
-    
+
     // URLs de la API
-    const API_URL_EQUIPOS = `./api/index.php?equipos`; 
+    const API_URL_EQUIPOS = `./api/index.php?equipos`;
     const API_URL_CATEGORIAS = `./api/index.php?categorias`;
 
     // Elementos del DOM - Pestaña Equipos
@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.querySelector("#modalTitle span");
     const modalTitleIcon = document.querySelector("#modalTitleIcon");
     const selectCategoria = formEquipo.querySelector("select[name='id_categoria']");
+    const divMotivo = document.querySelector("#divMotivoCambio");
+    const inputMotivo = document.querySelector("#inputMotivoCambio");
 
     // Elementos de Modales Genéricos (Confirmación y Mensajes)
     const modalConfirmElement = document.querySelector("#modalConfirm");
@@ -48,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ========================================================================
     // INICIALIZACIÓN
     // ========================================================================
-    
+
     init();
 
     function init() {
@@ -157,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Determinar Verbo HTTP y URL
         const method = estadoApp.accion === "editar" ? "PUT" : "POST";
-        
+
         try {
             const response = await fetch(API_URL_EQUIPOS, {
                 method: method,
@@ -186,9 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
      */
     function eliminarEquipo(equipo) {
         // Configurar Modal de Confirmación
-        document.querySelector("#modalConfirmMensaje").textContent = 
+        document.querySelector("#modalConfirmMensaje").textContent =
             `¿Confirma que desea eliminar el equipo "${equipo.marca} ${equipo.modelo}" (Cod: ${equipo.codigo_inventario})?`;
-        
+
         modalConfirm.show();
 
         // Configurar botón "Aceptar" (clonarlo para limpiar listeners viejos)
@@ -199,14 +201,14 @@ document.addEventListener("DOMContentLoaded", () => {
         // Acción al confirmar
         nuevoBtn.addEventListener("click", async () => {
             modalConfirm.hide();
-            
+
             try {
                 const response = await fetch(API_URL_EQUIPOS, {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id: equipo.id })
                 });
-                
+
                 const result = await response.json();
 
                 if (result.success) {
@@ -239,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Renderizar filas
         inventario.data.forEach(equipo => {
             const clone = templateRow.content.cloneNode(true);
-            
+
             // Llenar datos
             clone.querySelector(".codigo").textContent = equipo.codigo_inventario;
             clone.querySelector(".categoria").textContent = equipo.categoria;
@@ -251,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const badge = clone.querySelector(".estado span");
             badge.textContent = equipo.estado;
             badge.className = "badge"; // Reset
-            
+
             const clasesMap = {
                 'Disponible': 'bg-success',
                 'Asignado': 'bg-primary',
@@ -260,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
             // Obtenemos la clase o usamos el default
             const claseEstado = clasesMap[equipo.estado] || 'bg-secondary';
-            
+
             // Asignamos el string completo a className
             badge.className = `badge ${claseEstado}`;
 
@@ -276,8 +278,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderizarPaginacion(pagination, paginationContainer) {
         if (!paginationContainer) return;
-        paginationContainer.innerHTML = "";        
-        
+        paginationContainer.innerHTML = "";
+
         const { page, pages } = pagination;
         if (pages <= 1) return;
 
@@ -287,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.className = `btn btn-sm ${active ? 'btn-dark' : 'btn-outline-dark'} mx-1 border-0`;
             btn.disabled = disabled;
             btn.innerHTML = iconClass ? `<i class="${iconClass}"></i>` : texto;
-            
+
             if (!disabled && !active) {
                 btn.addEventListener("click", () => {
                     estadoApp.paginaActual = pagDestino;
@@ -312,12 +314,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function actualizarIndicadoresOrden() {
         // Resetear todos los iconos a gris/invisible
         document.querySelectorAll(".sortable i").forEach(i => i.className = "bi bi-caret-up-fill opacity-0");
-        
+
         // Activar el actual
         const thActivo = document.querySelector(`.sortable[data-sort="${estadoApp.columnaOrden}"] i`);
         if (thActivo) {
-            thActivo.className = estadoApp.orden === "ASC" 
-                ? "bi bi-caret-up-fill text-warning" 
+            thActivo.className = estadoApp.orden === "ASC"
+                ? "bi bi-caret-up-fill text-warning"
                 : "bi bi-caret-down-fill text-warning";
         }
     }
@@ -329,17 +331,21 @@ document.addEventListener("DOMContentLoaded", () => {
     function abrirModalCrear() {
         estadoApp.accion = "crear";
         estadoApp.idEdicion = null;
-        
+
         formEquipo.reset();
         formEquipo.classList.remove('was-validated');
         limpiarValidaciones();
-        
+
         // Títulos
         modalTitle.textContent = "Nuevo Equipo";
         modalTitleIcon.className = "bi bi-plus-circle";
-        
+
+        // Ocultar motivo cambio
+        divMotivo.classList.add("d-none");
+        inputMotivo.required = false;
+
         // Valor por defecto
-        if(formEquipo.estado) formEquipo.estado.value = "Disponible";
+        if (formEquipo.estado) formEquipo.estado.value = "Disponible";
 
         modalEquipoForm.show();
     }
@@ -349,7 +355,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fetch(`${API_URL_EQUIPOS}&id=${id}`)
             .then(r => r.json())
             .then(res => {
-                if(res.success) {
+                if (res.success) {
                     const eq = res.data;
                     estadoApp.accion = "editar";
                     estadoApp.idEdicion = eq.id;
@@ -363,16 +369,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     formEquipo.numero_serie.value = eq.numero_serie;
                     formEquipo.estado.value = eq.estado;
                     formEquipo.ubicacion_detalle.value = eq.ubicacion_detalle;
-                    
+
                     formEquipo.fecha_adquisicion.value = eq.fecha_adquisicion;
                     formEquipo.proveedor.value = eq.proveedor;
                     formEquipo.valor_compra.value = eq.valor_compra;
                     formEquipo.observaciones.value = eq.observaciones;
 
+                    // MOSTRAR campo de motivo
+                    divMotivo.classList.remove("d-none");
+                    inputMotivo.value = "";
+                    inputMotivo.required = true;
+
                     // Títulos
-                    modalTitle.textContent = "Editar Equipo";
+                    modalTitle.textContent = "Datos del Equipo";
                     modalTitleIcon.className = "bi bi-pencil-square";
-                    
+
                     formEquipo.classList.remove('was-validated');
                     limpiarValidaciones();
                     modalEquipoForm.show();
@@ -390,10 +401,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function mostrarMensaje(texto, titulo, tipo) {
         document.querySelector("#modalMessageTitle").textContent = titulo;
         document.querySelector("#modalMessageBody").textContent = texto;
-        
+
         const header = document.querySelector("#modalMessageHeader");
         header.className = `modal-header text-white bg-${tipo}`;
-        
+
         modalMessage.show();
     }
+
+    modalEquipoForm._element.addEventListener('shown.bs.modal', () => {
+        formEquipo.codigo_inventario.focus();
+    });
 });
