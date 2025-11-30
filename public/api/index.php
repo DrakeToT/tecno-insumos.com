@@ -13,7 +13,7 @@ if (isset($_GET['equipos'])) {
     $controller = new EquiposController();
     switch ($method) {
         case 'GET':
-            isset($_GET['id']) ? $controller->getOne() : $controller->getAll();
+            $controller->handleGet($_GET);
             break;
         case 'POST':
             $controller->create();
