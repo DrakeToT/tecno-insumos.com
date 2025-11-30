@@ -159,7 +159,7 @@ class EquiposController
                 $currentUser = currentUser();   // Obtener el usuario actual para saber quién hizo el alta.
                 $idUsuario = $currentUser['id'];
 
-                $obs = "Alta inicial del equipo." . $data['observaciones'];
+                $obs = "Registro inicial del equipo." . $data['observaciones'];
                 $this->movimientoModel->registrar($nuevoId, $idUsuario, 'Alta', $obs);
 
                 $this->jsonResponse(['success' => true, 'message' => 'Equipo registrado correctamente'], 201);
@@ -204,47 +204,78 @@ class EquiposController
             ], 400);
         }
 
+        // Sanitizar y Validar
         $data = $this->sanitizeData($input);
+        $motivoUsuario = sanitizeInput($input['motivo_cambio'] ?? ''); 
+
+        // Validar si es edición
+        if (empty($motivoUsuario)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Debe indicar un motivo para realizar la edición.'], 400);
+        }
 
         // Validar código duplicado (excluyendo el actual)
         if ($this->equipoModel->existeCodigo($data['codigo_inventario'], $id)) {
             $this->jsonResponse(['success' => false, 'message' => 'El código ya existe en otro equipo'], 409);
         }
+        // Validar serie duplicada (excluyendo el actual)
+        if (!empty($data['numero_serie'])){
+            if ($this->equipoModel->existeNumeroSerie($data['numero_serie'], $id)) {
+                $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe en otro equipo'], 409);
+            }
+        }
 
         try {
             if ($this->equipoModel->update($id, $data)) {
 
+                // --- GENERACIÓN DE TRAZABILIDAD ---
+                $cambiosDetectados = [];
+                
+                // Campos que queremos auditar
+                $camposAuditoría = [
+                    'codigo_inventario' => 'Código',
+                    'marca' => 'Marca',
+                    'modelo' => 'Modelo',
+                    'numero_serie' => 'Serie',
+                    'estado' => 'Estado',
+                    'ubicacion_detalle' => 'Ubicación'
+                ];
+
+                foreach ($camposAuditoría as $campoDB => $label) {
+                    $valorViejo = trim($equipoActual[$campoDB] ?? '');
+                    $valorNuevo = trim($data[$campoDB] ?? '');
+
+                    if ($valorViejo !== $valorNuevo) {
+                        $cambiosDetectados[] = "$label: '$valorViejo' -> '$valorNuevo'";
+                    }
+                }
+
                 // --- DETECCIÓN DE CAMBIOS PARA HISTORIAL ---
+                // Determinamos Tipo de Movimiento
+                $tipoMov = 'Ajuste'; // Por defecto es una simple edición de datos
+                
+                // Si cambió el estado, tiene prioridad el tipo de movimiento de estado
                 $nuevoEstado = $data['estado'];
                 $estadoAnterior = $equipoActual['estado'];
-                $currentUser = currentUser();
-                $idUsuario   = $currentUser['id'] ?? 0;
 
                 if ($nuevoEstado !== $estadoAnterior) {
-                    $tipoMov = 'Ajuste';
-                    $obs = "Cambio de estado: $estadoAnterior -> $nuevoEstado.";
-
-                    switch (true) {
-                        case ($estadoAnterior === 'Disponible' && $nuevoEstado === 'Asignado'):
-                            $tipoMov = 'Asignacion';
-                            $obs .= " Ubicación: " . $data['ubicacion_detalle'];
-                            break;
-
-                        case ($estadoAnterior === 'Asignado' && $nuevoEstado === 'Disponible'):
-                            $tipoMov = 'Devolucion';
-                            break;
-
-                        case ($nuevoEstado === 'En reparacion'):
-                            $tipoMov = 'Reparacion';
-                            break;
-
-                        case ($nuevoEstado === 'Baja'):
-                            $tipoMov = 'Baja';
-                            break;
-                    }
-
-                    $this->movimientoModel->registrar($id, $idUsuario, $tipoMov, $obs);
+                    if ($estadoAnterior === 'Disponible' && $nuevoEstado === 'Asignado') $tipoMov = 'Asignacion';
+                    elseif ($estadoAnterior === 'Asignado' && $nuevoEstado === 'Disponible') $tipoMov = 'Devolucion';
+                    elseif ($nuevoEstado === 'En reparacion') $tipoMov = 'Reparacion';
+                    elseif ($nuevoEstado === 'Baja') $tipoMov = 'Baja';
                 }
+
+                // Construimos la observación final para el historial
+                // Formato: [MOTIVO DEL USUARIO] - [DETALLE DE CAMBIOS]
+                $obsHistorial = "Motivo: " . $motivoUsuario;
+                
+                if (!empty($cambiosDetectados)) {
+                    $obsHistorial .= " - " . implode(', ', $cambiosDetectados) . ".";
+                }
+
+                // Registramos siempre que haya cambios O un motivo explícito
+                $idUsuario = currentUser()['id'];
+                $this->movimientoModel->registrar($id, $idUsuario, $tipoMov, $obsHistorial);
+
 
                 $this->jsonResponse(['success' => true, 'message' => 'Equipo actualizado correctamente']);
             } else {
