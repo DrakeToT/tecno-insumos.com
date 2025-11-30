@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // URLs de la API
     const API_URL_EQUIPOS = `./api/index.php?equipos`;
     const API_URL_CATEGORIAS = `./api/index.php?categorias`;
+    const API_URL_USUARIOS = `./api/index.php?users`;
+    const API_URL_EMPLEADOS = `./api/index.php?empleados`;
+    const API_URL_AREAS = `./api/index.php?areas`;
 
     // Elementos del DOM - Pestaña Equipos
     const tbodyEquipos = document.querySelector("#tablaEquipos tbody");
@@ -23,6 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectCategoria = formEquipo.querySelector("select[name='id_categoria']");
     const divMotivo = document.querySelector("#divMotivoCambio");
     const inputMotivo = document.querySelector("#inputMotivoCambio");
+    const bloqueAsignacion = document.getElementById("bloqueAsignacion");
+    const selectEstado = formEquipo.querySelector("select[name='estado']");
+    const radiosTipo = formEquipo.querySelectorAll('input[name="asignado_tipo"]');
+    const selectoresAsignacion = formEquipo.querySelectorAll('.selector-asignacion');
 
     // Elementos de Modales Genéricos (Confirmación y Mensajes)
     const modalConfirmElement = document.querySelector("#modalConfirm");
@@ -141,6 +148,58 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
+     * Carga las listas para asignación (Usuarios, Empleados, Áreas)
+     */
+    function cargarListasAsignacion() {
+        // Cargar Usuarios
+        fetch(API_URL_USUARIOS).then(r => r.json()).then(res => {
+            const sel = document.getElementById("selAsignarUsuario");
+            sel.innerHTML = '<option value="">Seleccione Usuario...</option>';
+            res.data.forEach(u => sel.add(new Option(`${u.nombre} ${u.apellido}`, u.id)));
+        });
+
+        // Cargar Empleados (Necesitas crear el endpoint en API)
+        fetch(API_URL_EMPLEADOS).then(r => r.json()).then(res => {
+            const sel = document.getElementById("selAsignarEmpleado");
+            sel.innerHTML = '<option value="">Seleccione Empleado...</option>';
+            res.data.forEach(e => sel.add(new Option(`${e.nombre} ${e.apellido} - ${e.puesto}`, e.id)));
+        });
+
+        // Cargar Areas (Necesitas crear el endpoint en API)
+        fetch(API_URL_AREAS).then(r => r.json()).then(res => {
+            const sel = document.getElementById("selAsignarArea");
+            sel.innerHTML = '<option value="">Seleccione Área...</option>';
+            res.data.forEach(a => sel.add(new Option(a.nombre, a.id)));
+        });
+    }
+
+    /**
+     * Carga las listas para asignación (Usuarios, Empleados, Áreas)
+     */
+    function cargarListasAsignacion() {
+        // Cargar Usuarios
+        fetch(`./api/index.php?users`).then(r => r.json()).then(res => {
+            const sel = document.getElementById("selAsignarUsuario");
+            if(sel.options.length > 1) return; // Evitar recargar si ya tiene datos
+            res.data.forEach(u => sel.add(new Option(`${u.nombre} ${u.apellido}`, u.id)));
+        });
+
+        // Cargar Empleados
+        fetch(`./api/index.php?empleados`).then(r => r.json()).then(res => {
+            const sel = document.getElementById("selAsignarEmpleado");
+            if(sel.options.length > 1) return; 
+            res.data.forEach(e => sel.add(new Option(`${e.nombre} ${e.apellido} - ${e.puesto}`, e.id)));
+        });
+
+        // Cargar Áreas
+        fetch(`./api/index.php?areas`).then(r => r.json()).then(res => {
+            const sel = document.getElementById("selAsignarArea");
+            if(sel.options.length > 1) return;
+            res.data.forEach(a => sel.add(new Option(a.nombre, a.id)));
+        });
+    }
+
+    /**
      * Maneja el evento Submit del formulario (Crear o Editar)
      */
     async function manejarGuardado(e) {
@@ -222,6 +281,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+
 
     // ========================================================================
     // RENDERIZADO UI
@@ -324,6 +385,59 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function limpiarValidaciones() {
+        formEquipo.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+    }
+
+    // Detectar cambio de Estado (Disponible -> Asignado)
+    selectEstado.addEventListener("change", (e) => {
+        if (e.target.value === "Asignado") {
+            bloqueAsignacion.classList.remove("d-none");
+            cargarListasAsignacion(); // Función que crearemos abajo
+        } else {
+            bloqueAsignacion.classList.add("d-none");
+            limpiarSeleccionAsignacion();
+        }
+    });
+
+    // Detectar cambio de Tipo (Usuario / Empleado / Área)
+    radiosTipo.forEach(radio => {
+        radio.addEventListener("change", (e) => {
+            // Ocultar todos los selects primero
+            selectoresAsignacion.forEach(s => {
+                s.classList.add("d-none");
+                s.required = false;
+                s.removeAttribute("name"); // Importante: quitar name para no enviar datos vacíos
+            });
+
+            // Mostrar el select correspondiente
+            const tipo = e.target.value;
+            let selectId = "";
+            
+            if (tipo === "usuario") selectId = "selAsignarUsuario";
+            if (tipo === "empleado") selectId = "selAsignarEmpleado";
+            if (tipo === "area") selectId = "selAsignarArea";
+
+            const selectActivo = document.getElementById(selectId);
+            if (selectActivo) {
+                selectActivo.classList.remove("d-none");
+                selectActivo.required = true;
+                selectActivo.setAttribute("name", "asignado_id"); // Este enviará el ID
+            }
+        });
+    });
+
+    // Función para limpiar selección si se arrepiente
+    function limpiarSeleccionAsignacion() {
+        radiosTipo.forEach(r => r.checked = false);
+        selectoresAsignacion.forEach(s => {
+            s.classList.add("d-none");
+            s.value = "";
+            s.required = false;
+            s.removeAttribute("name");
+        });
+    }
+
     // ========================================================================
     // MODALES AUXILIARES
     // ========================================================================
@@ -392,10 +506,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => console.error(err));
-    }
-
-    function limpiarValidaciones() {
-        formEquipo.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
     }
 
     function mostrarMensaje(texto, titulo, tipo) {

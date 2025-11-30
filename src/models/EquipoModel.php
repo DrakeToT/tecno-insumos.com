@@ -178,7 +178,9 @@ class EquipoModel
                     fecha_adquisicion = :fecha,
                     proveedor = :proveedor,
                     valor_compra = :valor,
-                    observaciones = :obs
+                    observaciones = :obs,
+                    asignado_tipo = :asig_tipo,
+                    asignado_id = :asig_id
                 WHERE id = :id
             ";
 
@@ -200,6 +202,8 @@ class EquipoModel
             $stmt->bindParam(':proveedor', $data['proveedor'], PDO::PARAM_STR);
             $stmt->bindParam(':valor', $valor, PDO::PARAM_STR);
             $stmt->bindParam(':obs', $data['observaciones'], PDO::PARAM_STR);
+            $stmt->bindValue(':asig_tipo', $data['asignado_tipo'] ?? null, PDO::PARAM_STR); 
+            $stmt->bindValue(':asig_id', $data['asignado_id'] ?? null, PDO::PARAM_INT);
 
             return $stmt->execute();
 

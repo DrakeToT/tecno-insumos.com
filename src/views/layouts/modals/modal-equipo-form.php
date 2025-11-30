@@ -40,6 +40,39 @@
                             <label class="form-label">Modelo</label>
                             <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="modelo">
                         </div>
+                        
+                        <div class="col-12 mt-3 d-none p-3 bg-light border rounded" id="bloqueAsignacion">
+                            <label class="form-label fw-bold">¿A quién se asigna?</label>
+
+                            <div class="mb-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="asignado_tipo" id="radioUsuario" value="usuario">
+                                    <label class="form-check-label" for="radioUsuario">Usuario Sistema</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="asignado_tipo" id="radioEmpleado" value="empleado">
+                                    <label class="form-check-label" for="radioEmpleado">Empleado (Nómina)</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="asignado_tipo" id="radioArea" value="area">
+                                    <label class="form-check-label" for="radioArea">Área / Sector</label>
+                                </div>
+                            </div>
+
+                            <div class="mt-2">
+                                <select class="form-select d-none selector-asignacion" id="selAsignarUsuario">
+                                    <option value="">Seleccione Usuario...</option>
+                                </select>
+
+                                <select class="form-select d-none selector-asignacion" id="selAsignarEmpleado">
+                                    <option value="">Seleccione Empleado...</option>
+                                </select>
+
+                                <select class="form-select d-none selector-asignacion" id="selAsignarArea">
+                                    <option value="">Seleccione Área...</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row mb-3 g-3">

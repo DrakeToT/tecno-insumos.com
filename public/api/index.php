@@ -43,6 +43,28 @@ if (isset($_GET['categorias'])) {
 }
 
 // =============================================================
+// RECURSO: EMPLEADOS (?empleados)
+// =============================================================
+if (isset($_GET['empleados'])) {
+    require_once __DIR__ . '/../../src/controllers/EquiposController.php';
+    $controller = new EquiposController();
+    if ($method === 'GET') $controller->getEmpleados();
+    else sendMethodNotAllowed();
+    exit;
+}
+
+// =============================================================
+// RECURSO: AREAS (?areas)
+// =============================================================
+if (isset($_GET['areas'])) {
+    require_once __DIR__ . '/../../src/controllers/EquiposController.php';
+    $controller = new EquiposController();
+    if ($method === 'GET') $controller->getAreas();
+    else sendMethodNotAllowed();
+    exit;
+}
+
+// =============================================================
 // RECURSO: USUARIOS (?users)
 // =============================================================
 if (isset($_GET['users'])) {
