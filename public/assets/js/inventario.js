@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         limite: 10,
         busqueda: "",
         orden: "ASC",
-        columnaOrden: "id"
+        columnaOrden: "codigo_inventario"
     };
 
     let debounceTimer;

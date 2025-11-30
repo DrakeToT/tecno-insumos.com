@@ -112,7 +112,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
                             <div class="fw-bold">Stock de Insumos</div>
-                            <button type="button" class="btn btn-success btn-sm" onclick="alert('Próximamente: Módulo Insumos')">
+                            <button type="button" class="btn btn-success btn-sm">
                                 <i class="bi bi-plus-circle"></i> Nuevo Insumo
                             </button>
                         </div>
@@ -131,7 +131,7 @@ $extra_js  = ["/assets/js/inventario.js"];
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center bg-light">
                             <div class="fw-bold">Consumibles (Papel, Tintas, Etc)</div>
-                            <button type="button" class="btn btn-success text-white btn-sm" onclick="alert('Próximamente: Módulo Consumibles')">
+                            <button type="button" class="btn btn-success text-white btn-sm">
                                 <i class="bi bi-plus-circle"></i> Nuevo Consumible
                             </button>
                         </div>

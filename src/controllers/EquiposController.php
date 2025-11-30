@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../models/EquipoModel.php';
 require_once __DIR__ . '/../models/CategoriaModel.php';
+require_once __DIR__ . '/../models/MovimientoEquipoModel.php';
 require_once __DIR__ . '/../helpers/session.php';
 require_once __DIR__ . '/../helpers/sanitize.php';
 require_once __DIR__ . '/../helpers/permisos.php';
@@ -9,11 +10,13 @@ class EquiposController
 {
     private $equipoModel;
     private $categoriaModel;
+    private $movimientoModel;
 
     public function __construct()
     {
         $this->equipoModel = new EquipoModel();
         $this->categoriaModel = new CategoriaModel();
+        $this->movimientoModel = new MovimientoEquipoModel();
     }
 
     // Renderiza la vista (HTML)
@@ -142,9 +145,23 @@ class EquiposController
         if ($this->equipoModel->existeCodigo($data['codigo_inventario'])) {
             $this->jsonResponse(['success' => false, 'message' => 'El código ya existe'], 409);
         }
+        
+        if (!empty($data['numero_serie'])){
+            if ($this->equipoModel->existeNumeroSerie($data['numero_serie'])) {
+                $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe'], 409);
+            }
+        }
 
         try {
-            if ($this->equipoModel->create($data)) {
+            $nuevoId = $this->equipoModel->create($data);
+
+            if ($nuevoId > 0) {
+                $currentUser = currentUser();   // Obtener el usuario actual para saber quién hizo el alta.
+                $idUsuario = $currentUser['id'];
+
+                $obs = "Alta inicial del equipo." . $data['observaciones'];
+                $this->movimientoModel->registrar($nuevoId, $idUsuario, 'Alta', $obs);
+
                 $this->jsonResponse(['success' => true, 'message' => 'Equipo registrado correctamente'], 201);
             } else {
                 $this->jsonResponse(['success' => false, 'message' => 'Error al guardar en BD'], 500);
@@ -174,6 +191,19 @@ class EquiposController
             $this->jsonResponse(['success' => false, 'message' => 'ID inválido para actualización'], 400);
         }
 
+        // Obtenemos estado previo
+        $equipoActual = $this->equipoModel->getById($id);
+        if (!$equipoActual) {
+            $this->jsonResponse(['success' => false, 'message' => 'Equipo no encontrado'], 404);
+        }
+        // Si está de Baja, no se puede editar.
+        if ($equipoActual['estado'] === 'Baja') {
+            $this->jsonResponse([
+                'success' => false, 
+                'message' => 'No se puede editar un equipo que ya ha sido dado de Baja definitiva.'
+            ], 400);
+        }
+
         $data = $this->sanitizeData($input);
 
         // Validar código duplicado (excluyendo el actual)
@@ -183,12 +213,66 @@ class EquiposController
 
         try {
             if ($this->equipoModel->update($id, $data)) {
+
+                // --- DETECCIÓN DE CAMBIOS PARA HISTORIAL ---
+                $nuevoEstado = $data['estado'];
+                $estadoAnterior = $equipoActual['estado'];
+                $currentUser = currentUser();
+                $idUsuario   = $currentUser['id'] ?? 0;
+
+                if ($nuevoEstado !== $estadoAnterior) {
+                    $tipoMov = 'Ajuste';
+                    $obs = "Cambio de estado: $estadoAnterior -> $nuevoEstado.";
+
+                    switch (true) {
+                        case ($estadoAnterior === 'Disponible' && $nuevoEstado === 'Asignado'):
+                            $tipoMov = 'Asignacion';
+                            $obs .= " Ubicación: " . $data['ubicacion_detalle'];
+                            break;
+
+                        case ($estadoAnterior === 'Asignado' && $nuevoEstado === 'Disponible'):
+                            $tipoMov = 'Devolucion';
+                            break;
+
+                        case ($nuevoEstado === 'En reparacion'):
+                            $tipoMov = 'Reparacion';
+                            break;
+
+                        case ($nuevoEstado === 'Baja'):
+                            $tipoMov = 'Baja';
+                            break;
+                    }
+
+                    $this->movimientoModel->registrar($id, $idUsuario, $tipoMov, $obs);
+                }
+
                 $this->jsonResponse(['success' => true, 'message' => 'Equipo actualizado correctamente']);
             } else {
                 $this->jsonResponse(['success' => false, 'message' => 'No se pudo actualizar'], 500);
             }
         } catch (Exception $e) {
             $this->jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+    /**
+     * GET ?historial&id=X
+     * Consultar historial de un equipo
+     */
+    public function getHistorial()
+    {
+        $this->checkAuth();
+        if (!Permisos::tienePermiso('ver_historial_equipo')) {
+            $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado. No tienes permisos para ver el historial de los equipos.'], 403);
+        }
+
+        $id = isset($_GET['id']) ? sanitizeInt($_GET['id']) : 0;
+        if ($id <= 0) $this->jsonResponse(['success' => false, 'message' => 'ID inválido'], 400);
+
+        try {
+            $data = $this->movimientoModel->getByEquipo($id);
+            $this->jsonResponse(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Error al obtener historial'], 500);
         }
     }
 
@@ -216,6 +300,21 @@ class EquiposController
             $this->jsonResponse(['success' => false, 'message' => 'No se pudo eliminar'], 500);
         }
     }
+
+    /**
+     * Maneja las solicitudes GET para el recurso "equipos".
+     */
+    public function handleGet(array $params)
+    {
+        if (isset($params['historial'])) {
+            $this->getHistorial();
+        } elseif (isset($params['id'])) {
+            $this->getOne();
+        } else {
+            $this->getAll();
+        }
+    }
+
 
     // ====================================================================
     // HELPERS PRIVADOS
