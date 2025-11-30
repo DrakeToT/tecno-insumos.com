@@ -18,12 +18,12 @@
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
                             <label class="form-label">Código Inventario *</label>
-                            <input type="text" class="form-control" name="codigo_inventario" required>
+                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="codigo_inventario" required>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Categoría *</label>
-                            <select class="form-select" name="id_categoria" required>
+                            <select class="form-select border-dark-subtle focus-ring focus-ring-dark" name="id_categoria" required>
                                 <option value="">Seleccione una categoría</option>
                             </select>
                             <div class="invalid-feedback">Seleccione una categoría.</div>
@@ -33,23 +33,23 @@
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
                             <label class="form-label">Marca *</label>
-                            <input type="text" class="form-control" name="marca" required>
+                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="marca" required>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Modelo</label>
-                            <input type="text" class="form-control" name="modelo">
+                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="modelo">
                         </div>
                     </div>
 
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
                             <label class="form-label">Número de Serie</label>
-                            <input type="text" class="form-control" name="numero_serie">
+                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="numero_serie">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Estado</label>
-                            <select class="form-select" name="estado">
+                            <select class="form-select border-dark-subtle focus-ring focus-ring-dark" name="estado">
                                 <option value="Disponible">Disponible</option>
                                 <option value="Asignado">Asignado</option>
                                 <option value="En reparacion">En Reparación</option>
@@ -60,7 +60,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Ubicación Física</label>
-                        <input type="text" class="form-control" name="ubicacion_detalle" placeholder="Ej: Estante 3, Depósito Central">
+                        <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="ubicacion_detalle" placeholder="Ej: Estante 3, Depósito Central">
                     </div>
 
                     <hr>
@@ -68,21 +68,30 @@
                     <div class="row mb-3 g-3">
                         <div class="col-md-4">
                             <label class="form-label">Fecha Compra</label>
-                            <input type="date" class="form-control" name="fecha_adquisicion">
+                            <input type="date" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="fecha_adquisicion">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Proveedor</label>
-                            <input type="text" class="form-control" name="proveedor">
+                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="proveedor">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Costo</label>
-                            <input type="number" step="0.01" class="form-control" name="valor_compra">
+                            <input type="number" step="0.01" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="valor_compra">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Observaciones</label>
-                        <textarea class="form-control" name="observaciones" rows="2"></textarea>
+                        <label class="form-label">Observaciones del Equipo</label>
+                        <textarea class="form-control border-dark-subtle focus-ring focus-ring-dark" name="observaciones" rows="2" placeholder="Detalles permanentes del equipo (ej: rayón en tapa)"></textarea>
+                    </div>
+
+                    <div class="mb-3 p-3 bg-light border rounded d-none" id="divMotivoCambio">
+                        <label class="form-label fw-bold text-dark">
+                            <i class="bi bi-pencil-square"></i> ¿Por qué realizas este cambio? *
+                        </label>
+                        <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="motivo_cambio" id="inputMotivoCambio" placeholder="Ej: Corregí error de tipeo en el serial / Actualicé el precio">
+                        <div class="form-text">Este comentario quedará guardado en el historial.</div>
+                        <div class="invalid-feedback">Debes indicar el motivo de la edición.</div>
                     </div>
 
                 </div>
