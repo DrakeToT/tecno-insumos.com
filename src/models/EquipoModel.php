@@ -114,9 +114,9 @@ class EquipoModel
     }
 
     /**
-     * Crear nuevo equipo
+     * Crear nuevo equipo y retornar su ID
      */
-    public function create(array $data): bool
+    public function create(array $data): int
     {
         try {
             $sql = "
@@ -150,11 +150,13 @@ class EquipoModel
             $stmt->bindParam(':valor', $valor, PDO::PARAM_STR); // Decimal se pasa como string o null
             $stmt->bindParam(':obs', $data['observaciones'], PDO::PARAM_STR);
 
-            return $stmt->execute();
+            if ($stmt->execute()){
+                return (int) $this->conn->lastInsertId();
+            }
+            return 0;
 
         } catch (PDOException $e) {
-            // Loguear error si fuera necesario
-            return false;
+            return 0;
         }
     }
 
@@ -226,6 +228,27 @@ class EquipoModel
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
+
+    /**
+     * Validar existencia de número de serie (AJAX)
+     */
+    public function existeNumeroSerie(string $numeroSerie, ?int $idExcluir = null): bool
+    {
+        $sql = "SELECT id FROM equipos WHERE numero_serie = :serial";
+        if ($idExcluir) {
+            $sql .= " AND id != :id";
+        }
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':serial', $numeroSerie, PDO::PARAM_STR);
+        
+        if ($idExcluir) {
+            $stmt->bindParam(':id', $idExcluir, PDO::PARAM_INT);
+        }
+        
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }   
     
     /**
      * Eliminar equipo (físico)
