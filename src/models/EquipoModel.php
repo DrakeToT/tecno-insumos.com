@@ -123,11 +123,13 @@ class EquipoModel
                 INSERT INTO equipos (
                     codigo_inventario, id_categoria, marca, modelo, numero_serie, 
                     estado, ubicacion_detalle, fecha_adquisicion, proveedor, 
-                    valor_compra, observaciones
+                    valor_compra, observaciones,
+                    asignado_tipo, asignado_id
                 ) VALUES (
                     :codigo, :id_cat, :marca, :modelo, :serial, 
                     :estado, :ubicacion, :fecha, :proveedor, 
-                    :valor, :obs
+                    :valor, :obs,
+                    :asig_tipo, :asig_id
                 )
             ";
 
@@ -149,6 +151,8 @@ class EquipoModel
             $stmt->bindParam(':proveedor', $data['proveedor'], PDO::PARAM_STR);
             $stmt->bindParam(':valor', $valor, PDO::PARAM_STR); // Decimal se pasa como string o null
             $stmt->bindParam(':obs', $data['observaciones'], PDO::PARAM_STR);
+            $stmt->bindValue(':asig_tipo', $data['asignado_tipo'] ?? null, PDO::PARAM_STR);
+            $stmt->bindValue(':asig_id', $data['asignado_id'] ?? null, PDO::PARAM_INT);
 
             if ($stmt->execute()){
                 return (int) $this->conn->lastInsertId();
