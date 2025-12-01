@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../models/EquipoModel.php';
 require_once __DIR__ . '/../models/CategoriaModel.php';
 require_once __DIR__ . '/../models/MovimientoEquipoModel.php';
+require_once __DIR__ . '/../models/EmpleadoModel.php';
+require_once __DIR__ . '/../models/AreaModel.php';
+require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../helpers/session.php';
 require_once __DIR__ . '/../helpers/sanitize.php';
 require_once __DIR__ . '/../helpers/permisos.php';
@@ -11,12 +14,18 @@ class EquiposController
     private $equipoModel;
     private $categoriaModel;
     private $movimientoModel;
+    private $empleadoModel;
+    private $areaModel;
+    private $userModel;
 
     public function __construct()
     {
         $this->equipoModel = new EquipoModel();
         $this->categoriaModel = new CategoriaModel();
         $this->movimientoModel = new MovimientoEquipoModel();
+        $this->empleadoModel = new EmpleadoModel();
+        $this->areaModel = new AreaModel();
+        $this->userModel = new UserModel();
     }
 
     // Renderiza la vista (HTML)
@@ -120,6 +129,31 @@ class EquiposController
     }
 
     /**
+     * GET ?empleados
+     */
+    public function getEmpleados() {
+        $this->checkAuth();
+        try {
+            $data = $this->empleadoModel->getAllActive();
+            $this->jsonResponse(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Error al cargar empleados'], 500);
+        }
+    }
+    /**
+     * GET ?areas
+     */
+    public function getAreas() {
+        $this->checkAuth();
+        try {
+            $data = $this->areaModel->getAllActive();
+            $this->jsonResponse(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Error al cargar áreas'], 500);
+        }
+    }
+
+    /**
      * POST ?equipos
      * Crea un nuevo recurso
      */
@@ -145,8 +179,8 @@ class EquiposController
         if ($this->equipoModel->existeCodigo($data['codigo_inventario'])) {
             $this->jsonResponse(['success' => false, 'message' => 'El código ya existe'], 409);
         }
-        
-        if (!empty($data['numero_serie'])){
+
+        if (!empty($data['numero_serie'])) {
             if ($this->equipoModel->existeNumeroSerie($data['numero_serie'])) {
                 $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe'], 409);
             }
@@ -199,14 +233,14 @@ class EquiposController
         // Si está de Baja, no se puede editar.
         if ($equipoActual['estado'] === 'Baja') {
             $this->jsonResponse([
-                'success' => false, 
+                'success' => false,
                 'message' => 'No se puede editar un equipo que ya ha sido dado de Baja definitiva.'
             ], 400);
         }
 
         // Sanitizar y Validar
         $data = $this->sanitizeData($input);
-        $motivoUsuario = sanitizeInput($input['motivo_cambio'] ?? ''); 
+        $motivoUsuario = sanitizeInput($input['motivo_cambio'] ?? '');
 
         // Validar si es edición
         if (empty($motivoUsuario)) {
@@ -218,9 +252,46 @@ class EquiposController
             $this->jsonResponse(['success' => false, 'message' => 'El código ya existe en otro equipo'], 409);
         }
         // Validar serie duplicada (excluyendo el actual)
-        if (!empty($data['numero_serie'])){
+        if (!empty($data['numero_serie'])) {
             if ($this->equipoModel->existeNumeroSerie($data['numero_serie'], $id)) {
                 $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe en otro equipo'], 409);
+            }
+        }
+
+        // --- LÓGICA DE ASIGNACIÓN ---
+        $asignadoTipo = $input['asignado_tipo'] ?? null;
+        $asignadoId   = isset($input['asignado_id']) ? sanitizeInt($input['asignado_id']) : null;
+
+        if ($data['estado'] === 'Asignado') {
+            if (empty($asignadoTipo) || empty($asignadoId)) {
+                $this->jsonResponse(['success' => false, 'message' => 'Debe seleccionar a quién asignar el equipo.'], 400);
+            }
+
+            // Generamos el texto para "ubicacion_detalle"
+            $nombreAsignado = "Asignado";
+            if ($asignadoTipo === 'usuario') {
+                $u = $this->userModel->findById($asignadoId);
+                if ($u) $nombreAsignado = "Usuario: " . $u['nombre'] . " " . $u['apellido'];
+            } elseif ($asignadoTipo === 'empleado') {
+                $e = $this->empleadoModel->getById($asignadoId);
+                if ($e) $nombreAsignado = "Empleado: " . $e['nombre'] . " " . $e['apellido'];
+            } elseif ($asignadoTipo === 'area') {
+                $a = $this->areaModel->getById($asignadoId);
+                if ($a) $nombreAsignado = "Área: " . $a['nombre'];
+            }
+
+            $data['asignado_tipo'] = $asignadoTipo;
+            $data['asignado_id'] = $asignadoId;
+            $data['ubicacion_detalle'] = $nombreAsignado; // Sobrescribimos la ubicación manual
+
+        } else {
+            // Si NO está asignado, limpiamos
+            $data['asignado_tipo'] = null;
+            $data['asignado_id'] = null;
+            
+            // Si pasa a disponible y no escribieron ubicación, ponemos una por defecto
+            if ($data['estado'] === 'Disponible' && empty($data['ubicacion_detalle'])) {
+                $data['ubicacion_detalle'] = 'Depósito IT';
             }
         }
 
@@ -229,7 +300,7 @@ class EquiposController
 
                 // --- GENERACIÓN DE TRAZABILIDAD ---
                 $cambiosDetectados = [];
-                
+
                 // Campos que queremos auditar
                 $camposAuditoría = [
                     'codigo_inventario' => 'Código',
@@ -252,7 +323,7 @@ class EquiposController
                 // --- DETECCIÓN DE CAMBIOS PARA HISTORIAL ---
                 // Determinamos Tipo de Movimiento
                 $tipoMov = 'Ajuste'; // Por defecto es una simple edición de datos
-                
+
                 // Si cambió el estado, tiene prioridad el tipo de movimiento de estado
                 $nuevoEstado = $data['estado'];
                 $estadoAnterior = $equipoActual['estado'];
@@ -267,7 +338,7 @@ class EquiposController
                 // Construimos la observación final para el historial
                 // Formato: [MOTIVO DEL USUARIO] - [DETALLE DE CAMBIOS]
                 $obsHistorial = "Motivo: " . $motivoUsuario;
-                
+
                 if (!empty($cambiosDetectados)) {
                     $obsHistorial .= " - " . implode(', ', $cambiosDetectados) . ".";
                 }
