@@ -186,6 +186,78 @@ class EquiposController
             }
         }
 
+        // --- LÓGICA DE ASIGNACIÓN EN ALTA ---
+        // Capturar los datos del input
+        $asignadoTipo = $dataRaw['asignado_tipo'] ?? null;
+        $asignadoId   = isset($dataRaw['asignado_id']) ? sanitizeInt($dataRaw['asignado_id']) : null;
+        $nombreAsignado = ""; // Para usar en el historial
+
+        if ($data['estado'] === 'Asignado') {
+            if (empty($asignadoTipo) || empty($asignadoId)) {
+                $this->jsonResponse(['success' => false, 'message' => 'Debe seleccionar a quién asignar el equipo.'], 400);
+            }
+
+            // Generar el texto para "ubicacion_detalle" y almacenar para el historial
+            $nombreUbicacion = "Asignado";
+            
+            if ($asignadoTipo === 'usuario') {
+                $u = $this->userModel->findById($asignadoId);
+                if ($u) $nombreUbicacion = "Usuario: " . $u['nombre'] . " " . $u['apellido'];
+            } elseif ($asignadoTipo === 'empleado') {
+                $e = $this->empleadoModel->getById($asignadoId);
+                if ($e) $nombreUbicacion = "Empleado: " . $e['nombre'] . " " . $e['apellido'];
+            } elseif ($asignadoTipo === 'area') {
+                $a = $this->areaModel->getById($asignadoId);
+                if ($a) $nombreUbicacion = "Área: " . $a['nombre'];
+            }
+
+            // Guardamos en el array data que irá al modelo
+            $data['asignado_tipo'] = $asignadoTipo;
+            $data['asignado_id'] = $asignadoId;
+            $data['ubicacion_detalle'] = $nombreUbicacion; // Sobrescribimos lo que haya puesto el usuario manualmente
+            
+            $nombreAsignado = "Asignado: ($nombreUbicacion)"; // Guardamos para el texto del historial
+
+        } else {
+            // Si nace como disponible, limpiamos relaciones
+            $data['asignado_tipo'] = null;
+            $data['asignado_id'] = null;
+            // Si no escribió ubicación manual, ponemos default
+            if ($data['estado'] === 'Disponible' && empty($data['ubicacion_detalle'])) {
+                $data['ubicacion_detalle'] = 'Depósito IT';
+            }
+        }
+
+        // --- Determinar Tipo de Movimiento Dinámico ---
+                $tipoMovimiento = 'Alta'; // Valor por defecto (para 'Disponible')
+                $obsInicio = "Alta inicial en stock."; // Texto base
+
+                switch ($data['estado']) {
+                    case 'Asignado':
+                        $tipoMovimiento = 'Asignacion';
+                        $obsInicio = "Ingreso directo con asignación. " . $nombreAsignado . ".";
+                        break;
+                    
+                    case 'En reparacion':
+                        $tipoMovimiento = 'Reparacion';
+                        $obsInicio = "Ingreso directo a servicio técnico/reparación.";
+                        break;
+                    
+                    case 'Baja':
+                        $tipoMovimiento = 'Baja';
+                        $obsInicio = "Registro histórico de equipo dado de baja.";
+                        break;
+                        
+                    case 'Disponible':
+                    default:
+                        $tipoMovimiento = 'Alta';
+                        $obsInicio = "Alta inicial. Equipo disponible en stock.";
+                        break;
+                }
+
+                // Concatenamos la observación del sistema con la nota del usuario
+                $obs = $obsInicio . " " . ($data['observaciones'] ?? '');
+
         try {
             $nuevoId = $this->equipoModel->create($data);
 
@@ -193,8 +265,7 @@ class EquiposController
                 $currentUser = currentUser();   // Obtener el usuario actual para saber quién hizo el alta.
                 $idUsuario = $currentUser['id'];
 
-                $obs = "Registro inicial del equipo." . $data['observaciones'];
-                $this->movimientoModel->registrar($nuevoId, $idUsuario, 'Alta', $obs);
+                $this->movimientoModel->registrar($nuevoId, $idUsuario, $tipoMovimiento, $obs);
 
                 $this->jsonResponse(['success' => true, 'message' => 'Equipo registrado correctamente'], 201);
             } else {
