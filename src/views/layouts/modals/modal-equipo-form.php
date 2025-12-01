@@ -41,40 +41,8 @@
                             <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="modelo">
                         </div>
                         
-                        <div class="col-12 mt-3 d-none p-3 bg-light border rounded" id="bloqueAsignacion">
-                            <label class="form-label fw-bold">¿A quién se asigna?</label>
-
-                            <div class="mb-2">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="asignado_tipo" id="radioUsuario" value="usuario">
-                                    <label class="form-check-label" for="radioUsuario">Usuario Sistema</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="asignado_tipo" id="radioEmpleado" value="empleado">
-                                    <label class="form-check-label" for="radioEmpleado">Empleado (Nómina)</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="asignado_tipo" id="radioArea" value="area">
-                                    <label class="form-check-label" for="radioArea">Área / Sector</label>
-                                </div>
-                            </div>
-
-                            <div class="mt-2">
-                                <select class="form-select d-none selector-asignacion" id="selAsignarUsuario">
-                                    <option value="">Seleccione Usuario...</option>
-                                </select>
-
-                                <select class="form-select d-none selector-asignacion" id="selAsignarEmpleado">
-                                    <option value="">Seleccione Empleado...</option>
-                                </select>
-
-                                <select class="form-select d-none selector-asignacion" id="selAsignarArea">
-                                    <option value="">Seleccione Área...</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
-
+                    
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
                             <label class="form-label">Número de Serie</label>
@@ -87,6 +55,39 @@
                                 <option value="Asignado">Asignado</option>
                                 <option value="En reparacion">En Reparación</option>
                                 <option value="Baja">Baja</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row m-0 d-none p-3 bg-light border border-dark-subtle rounded" id="bloqueAsignacion">
+                        <p class="fw-bold mb-1 p-0">¿A quién se asigna?</p>
+
+                        <div class="g-0 mb-2">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input border-dark-subtle focus-ring focus-ring-dark" type="radio" name="asignado_tipo" id="radioUsuario" value="usuario">
+                                <label class="form-check-label" for="radioUsuario">Usuario Sistema</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input border-dark-subtle focus-ring focus-ring-dark" type="radio" name="asignado_tipo" id="radioEmpleado" value="empleado">
+                                <label class="form-check-label" for="radioEmpleado">Empleado (Nómina)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input border-dark-subtle focus-ring focus-ring-dark" type="radio" name="asignado_tipo" id="radioArea" value="area">
+                                <label class="form-check-label" for="radioArea">Área / Sector</label>
+                            </div>
+                        </div>
+
+                        <div class="g-0">
+                            <select class="form-select d-none selector-asignacion border-dark-subtle focus-ring focus-ring-dark" id="selAsignarUsuario">
+                                <option value="">Seleccione Usuario...</option>
+                            </select>
+
+                            <select class="form-select d-none selector-asignacion border-dark-subtle focus-ring focus-ring-dark" id="selAsignarEmpleado">
+                                <option value="">Seleccione Empleado...</option>
+                            </select>
+
+                            <select class="form-select d-none selector-asignacion border-dark-subtle focus-ring focus-ring-dark" id="selAsignarArea">
+                                <option value="">Seleccione Área...</option>
                             </select>
                         </div>
                     </div>

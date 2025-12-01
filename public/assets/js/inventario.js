@@ -154,47 +154,21 @@ document.addEventListener("DOMContentLoaded", () => {
         // Cargar Usuarios
         fetch(API_URL_USUARIOS).then(r => r.json()).then(res => {
             const sel = document.getElementById("selAsignarUsuario");
-            sel.innerHTML = '<option value="">Seleccione Usuario...</option>';
-            res.data.forEach(u => sel.add(new Option(`${u.nombre} ${u.apellido}`, u.id)));
-        });
-
-        // Cargar Empleados (Necesitas crear el endpoint en API)
-        fetch(API_URL_EMPLEADOS).then(r => r.json()).then(res => {
-            const sel = document.getElementById("selAsignarEmpleado");
-            sel.innerHTML = '<option value="">Seleccione Empleado...</option>';
-            res.data.forEach(e => sel.add(new Option(`${e.nombre} ${e.apellido} - ${e.puesto}`, e.id)));
-        });
-
-        // Cargar Areas (Necesitas crear el endpoint en API)
-        fetch(API_URL_AREAS).then(r => r.json()).then(res => {
-            const sel = document.getElementById("selAsignarArea");
-            sel.innerHTML = '<option value="">Seleccione Área...</option>';
-            res.data.forEach(a => sel.add(new Option(a.nombre, a.id)));
-        });
-    }
-
-    /**
-     * Carga las listas para asignación (Usuarios, Empleados, Áreas)
-     */
-    function cargarListasAsignacion() {
-        // Cargar Usuarios
-        fetch(`./api/index.php?users`).then(r => r.json()).then(res => {
-            const sel = document.getElementById("selAsignarUsuario");
-            if(sel.options.length > 1) return; // Evitar recargar si ya tiene datos
-            res.data.forEach(u => sel.add(new Option(`${u.nombre} ${u.apellido}`, u.id)));
+            sel.innerHTML = '<option value="">Seleccione un usuario</option>';
+            res.data.forEach(u => sel.add(new Option(`${u.nombre} ${u.apellido} - ${u.rol}`, u.id)));
         });
 
         // Cargar Empleados
-        fetch(`./api/index.php?empleados`).then(r => r.json()).then(res => {
+        fetch(API_URL_EMPLEADOS).then(r => r.json()).then(res => {
             const sel = document.getElementById("selAsignarEmpleado");
-            if(sel.options.length > 1) return; 
+            sel.innerHTML = '<option value="">Seleccione un empleado</option>';
             res.data.forEach(e => sel.add(new Option(`${e.nombre} ${e.apellido} - ${e.puesto}`, e.id)));
         });
 
-        // Cargar Áreas
-        fetch(`./api/index.php?areas`).then(r => r.json()).then(res => {
+        // Cargar Areas
+        fetch(API_URL_AREAS).then(r => r.json()).then(res => {
             const sel = document.getElementById("selAsignarArea");
-            if(sel.options.length > 1) return;
+            sel.innerHTML = '<option value="">Seleccione un área</option>';
             res.data.forEach(a => sel.add(new Option(a.nombre, a.id)));
         });
     }
