@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../models/EquipoModel.php';
-require_once __DIR__ . '/../models/CategoriaModel.php';
 require_once __DIR__ . '/../models/MovimientoEquipoModel.php';
 require_once __DIR__ . '/../models/EmpleadoModel.php';
 require_once __DIR__ . '/../models/AreaModel.php';
@@ -12,7 +11,6 @@ require_once __DIR__ . '/../helpers/permisos.php';
 class EquiposController
 {
     private $equipoModel;
-    private $categoriaModel;
     private $movimientoModel;
     private $empleadoModel;
     private $areaModel;
@@ -21,7 +19,6 @@ class EquiposController
     public function __construct()
     {
         $this->equipoModel = new EquipoModel();
-        $this->categoriaModel = new CategoriaModel();
         $this->movimientoModel = new MovimientoEquipoModel();
         $this->empleadoModel = new EmpleadoModel();
         $this->areaModel = new AreaModel();
@@ -36,7 +33,7 @@ class EquiposController
             exit;
         }
         // Valida Permiso
-        if (!Permisos::tienePermiso('ver_inventario')) {
+        if (!Permisos::tienePermiso('acceder_inventario')) {
             http_response_code(403);
             require_once __DIR__ . '/../views/errors/403.php'; // Carga la vista de error
             exit; // Detiene la carga del resto de la página
@@ -55,9 +52,9 @@ class EquiposController
      */
     public function getAll()
     {
-        $this->checkAuth();
+        checkAuth();
 
-        if (!Permisos::tienePermiso('ver_inventario')) {
+        if (!Permisos::tienePermiso('listar_equipos')) {
             $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado.'], 403);
         }
 
@@ -93,9 +90,9 @@ class EquiposController
      */
     public function getOne()
     {
-        $this->checkAuth();
+        checkAuth();
 
-        if (!Permisos::tienePermiso('ver_inventario')) {
+        if (!Permisos::tienePermiso('consultar_equipo')) {
             $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado.'], 403);
         }
 
@@ -110,60 +107,14 @@ class EquiposController
     }
 
     /**
-     * GET ?categorias
-     */
-    public function getCategorias()
-    {
-        $this->checkAuth();
-
-        if (!Permisos::tienePermiso('ver_inventario')) {
-            $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado.'], 403);
-        }
-
-        try {
-            $categorias = $this->categoriaModel->getAllActive();
-            $this->jsonResponse(['success' => true, 'data' => $categorias]);
-        } catch (Exception $e) {
-            $this->jsonResponse(['success' => false, 'message' => 'Error al cargar categorías'], 500);
-        }
-    }
-
-    /**
-     * GET ?empleados
-     */
-    public function getEmpleados()
-    {
-        $this->checkAuth();
-        try {
-            $data = $this->empleadoModel->getAllActive();
-            $this->jsonResponse(['success' => true, 'data' => $data]);
-        } catch (Exception $e) {
-            $this->jsonResponse(['success' => false, 'message' => 'Error al cargar empleados'], 500);
-        }
-    }
-    /**
-     * GET ?areas
-     */
-    public function getAreas()
-    {
-        $this->checkAuth();
-        try {
-            $data = $this->areaModel->getAllActive();
-            $this->jsonResponse(['success' => true, 'data' => $data]);
-        } catch (Exception $e) {
-            $this->jsonResponse(['success' => false, 'message' => 'Error al cargar áreas'], 500);
-        }
-    }
-
-    /**
      * POST ?equipos
      * Crea un nuevo recurso
      */
     public function create()
     {
-        $this->checkAuth();
+        checkAuth();
 
-        if (!Permisos::tienePermiso('crear_equipos')) {
+        if (!Permisos::tienePermiso('crear_equipo')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para registrar equipos.'], 403);
         }
 
@@ -284,9 +235,9 @@ class EquiposController
      */
     public function update()
     {
-        $this->checkAuth();
+        checkAuth();
 
-        if (!Permisos::tienePermiso('editar_equipos')) {
+        if (!Permisos::tienePermiso('editar_equipo')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para editar equipos.'], 403);
         }
 
@@ -435,8 +386,8 @@ class EquiposController
      */
     public function getHistorial()
     {
-        $this->checkAuth();
-        if (!Permisos::tienePermiso('ver_historial_equipo')) {
+        checkAuth();
+        if (!Permisos::tienePermiso('consultar_historial_equipo')) {
             $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado. No tienes permisos para ver el historial de los equipos.'], 403);
         }
 
@@ -456,7 +407,7 @@ class EquiposController
      */
     public function delete()
     {
-        $this->checkAuth();
+        checkAuth();
 
         if (!Permisos::tienePermiso('eliminar_equipos')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para eliminar equipos.'], 403);
@@ -495,18 +446,9 @@ class EquiposController
     // HELPERS PRIVADOS
     // ====================================================================
 
-    private function checkAuth()
-    {
-        if (!headers_sent()) {
-            header('Content-Type: application/json; charset=utf-8');
-        }
-        if (!isUserLoggedIn()) {
-            echo json_encode(["success" => false, "message" => "Acceso no autorizado."]);
-            http_response_code(403);
-            exit;
-        }
-    }
-
+    /**
+     * Función para enviar respuestas JSON consistentes.
+     * */
     private function jsonResponse($data, $code = 200)
     {
         http_response_code($code);
