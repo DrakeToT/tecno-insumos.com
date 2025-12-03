@@ -51,8 +51,8 @@ switch ($route) {
         $controller->index();
         exit;
     case 'inventario':
-        require_once __DIR__ . '/../src/controllers/EquiposController.php';
-        $controller = new EquiposController();
+        require_once __DIR__ . '/../src/controllers/InventarioController.php';
+        $controller = new InventarioController();
         $controller->index();
         exit;
 }
