@@ -67,44 +67,56 @@ class UsersController
 
     /**
      * GET: Listar usuarios con filtros y paginación
-     * Permiso: ver_usuarios
+     * Permisos: listar_usuarios, listar_usuarios_activos
      */
     public function getAll()
     {
         $this->checkAuth();
-
-        if (!Permisos::tienePermiso('listar_usuarios')) {
-            $this->jsonResponse(['success' => false, 'message' => 'No tiene permiso para ver usuarios.'], 403);
-        }
-
-        $search = sanitizeInput($_GET['search'] ?? '');
-        $sort   = sanitizeInput($_GET['sort'] ?? 'id');
-        $order  = sanitizeInput($_GET['order'] ?? 'ASC');
-        $limit  = isset($_GET['limit']) ? sanitizeInt($_GET['limit']) : 10;
-        $page   = isset($_GET['page']) ? sanitizeInt($_GET['page']) : 1;
-        $offset = ($page - 1) * $limit;
-
-        $allowedSort = ['id', 'nombre', 'apellido', 'email', 'estado', 'rol'];
-        if (!in_array($sort, $allowedSort)) $sort = 'id';
-        $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
-
-        try {
-            $usuarios = $this->userModel->getAll($search, $sort, $order, $limit, $offset);
-            $totalUsuarios = $this->userModel->countAll($search);
-            $totalPages = ceil($totalUsuarios / $limit);
-
-            $this->jsonResponse([
-                'success' => true,
-                'data' => $usuarios,
-                'pagination' => [
-                    'page' => $page,
-                    'pages' => $totalPages,
-                    'total' => $totalUsuarios,
-                    'limit' => $limit
-                ]
-            ]);
-        } catch (Exception $e) {
-            $this->jsonResponse(['success' => false, 'message' => 'Error al obtener datos.'], 500);
+        
+        switch (true){
+            case Permisos::tienePermiso('listar_usuarios'):
+                // Puede ver todos los usuarios
+                $search = sanitizeInput($_GET['search'] ?? '');
+                $sort   = sanitizeInput($_GET['sort'] ?? 'id');
+                $order  = sanitizeInput($_GET['order'] ?? 'ASC');
+                $limit  = isset($_GET['limit']) ? sanitizeInt($_GET['limit']) : 10;
+                $page   = isset($_GET['page']) ? sanitizeInt($_GET['page']) : 1;
+                $offset = ($page - 1) * $limit;
+        
+                $allowedSort = ['id', 'nombre', 'apellido', 'email', 'estado', 'rol'];
+                if (!in_array($sort, $allowedSort)) $sort = 'id';
+                $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+        
+                try {
+                    $usuarios = $this->userModel->getAll($search, $sort, $order, $limit, $offset);
+                    $totalUsuarios = $this->userModel->countAll($search);
+                    $totalPages = ceil($totalUsuarios / $limit);
+        
+                    $this->jsonResponse([
+                        'success' => true,
+                        'data' => $usuarios,
+                        'pagination' => [
+                            'page' => $page,
+                            'pages' => $totalPages,
+                            'total' => $totalUsuarios,
+                            'limit' => $limit
+                        ]
+                    ]);
+                } catch (Exception $e) {
+                    $this->jsonResponse(['success' => false, 'message' => 'Error al obtener datos.'], 500);
+                }
+                break;
+            case Permisos::tienePermiso('listar_usuarios_activos'):
+                // Puede ver solo usuarios activos
+                try {
+                    $usuarios = $this->userModel->getAllActive();
+                    $this->jsonResponse(['success' => true, 'data' => $usuarios]);
+                } catch (Exception $e) {
+                    $this->jsonResponse(['success' => false, 'message' => 'Error al cargar usuarios'], 500);
+                }
+                break;
+            default:
+                $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado.'], 403);
         }
     }
 
