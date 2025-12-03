@@ -131,7 +131,8 @@ class EquiposController
     /**
      * GET ?empleados
      */
-    public function getEmpleados() {
+    public function getEmpleados()
+    {
         $this->checkAuth();
         try {
             $data = $this->empleadoModel->getAllActive();
@@ -143,7 +144,8 @@ class EquiposController
     /**
      * GET ?areas
      */
-    public function getAreas() {
+    public function getAreas()
+    {
         $this->checkAuth();
         try {
             $data = $this->areaModel->getAllActive();
@@ -199,7 +201,7 @@ class EquiposController
 
             // Generar el texto para "ubicacion_detalle" y almacenar para el historial
             $nombreUbicacion = "Asignado";
-            
+
             if ($asignadoTipo === 'usuario') {
                 $u = $this->userModel->findById($asignadoId);
                 if ($u) $nombreUbicacion = "Usuario: " . $u['nombre'] . " " . $u['apellido'];
@@ -215,7 +217,7 @@ class EquiposController
             $data['asignado_tipo'] = $asignadoTipo;
             $data['asignado_id'] = $asignadoId;
             $data['ubicacion_detalle'] = $nombreUbicacion; // Sobrescribimos lo que haya puesto el usuario manualmente
-            
+
             $nombreAsignado = "Asignado: ($nombreUbicacion)"; // Guardamos para el texto del historial
 
         } else {
@@ -229,34 +231,34 @@ class EquiposController
         }
 
         // --- Determinar Tipo de Movimiento Dinámico ---
-                $tipoMovimiento = 'Alta'; // Valor por defecto (para 'Disponible')
-                $obsInicio = "Alta inicial en stock."; // Texto base
+        $tipoMovimiento = 'Alta'; // Valor por defecto (para 'Disponible')
+        $obsInicio = "Alta inicial en stock."; // Texto base
 
-                switch ($data['estado']) {
-                    case 'Asignado':
-                        $tipoMovimiento = 'Asignacion';
-                        $obsInicio = "Ingreso directo con asignación. " . $nombreAsignado . ".";
-                        break;
-                    
-                    case 'En reparacion':
-                        $tipoMovimiento = 'Reparacion';
-                        $obsInicio = "Ingreso directo a servicio técnico/reparación.";
-                        break;
-                    
-                    case 'Baja':
-                        $tipoMovimiento = 'Baja';
-                        $obsInicio = "Registro histórico de equipo dado de baja.";
-                        break;
-                        
-                    case 'Disponible':
-                    default:
-                        $tipoMovimiento = 'Alta';
-                        $obsInicio = "Alta inicial. Equipo disponible en stock.";
-                        break;
-                }
+        switch ($data['estado']) {
+            case 'Asignado':
+                $tipoMovimiento = 'Asignacion';
+                $obsInicio = "Ingreso directo con asignación. " . $nombreAsignado . ".";
+                break;
 
-                // Concatenamos la observación del sistema con la nota del usuario
-                $obs = $obsInicio . " " . ($data['observaciones'] ?? '');
+            case 'En reparacion':
+                $tipoMovimiento = 'Reparacion';
+                $obsInicio = "Ingreso directo a servicio técnico/reparación.";
+                break;
+
+            case 'Baja':
+                $tipoMovimiento = 'Baja';
+                $obsInicio = "Registro histórico de equipo dado de baja.";
+                break;
+
+            case 'Disponible':
+            default:
+                $tipoMovimiento = 'Alta';
+                $obsInicio = "Alta inicial. Equipo disponible en stock.";
+                break;
+        }
+
+        // Concatenamos la observación del sistema con la nota del usuario
+        $obs = $obsInicio . " " . ($data['observaciones'] ?? '');
 
         try {
             $nuevoId = $this->equipoModel->create($data);
@@ -359,7 +361,7 @@ class EquiposController
             // Si NO está asignado, limpiamos
             $data['asignado_tipo'] = null;
             $data['asignado_id'] = null;
-            
+
             // Si pasa a disponible y no escribieron ubicación, ponemos una por defecto
             if ($data['estado'] === 'Disponible' && empty($data['ubicacion_detalle'])) {
                 $data['ubicacion_detalle'] = 'Depósito IT';
