@@ -74,3 +74,18 @@ function refreshUserSession(int $idUsuario): ?array {
 function setCurrentUser(array $user): void {
     $_SESSION['user'] = $user;
 }
+
+/**
+ * Verifica si hay un usuario autenticado; si no, envía una respuesta JSON de error y termina la ejecución.
+ */
+function checkAuth()
+    {
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        if (!isUserLoggedIn()) {
+            echo json_encode(["success" => false, "message" => "Acceso no autorizado."]);
+            http_response_code(403);
+            exit;
+        }
+    }
