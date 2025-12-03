@@ -44,7 +44,7 @@ class UsersController
      */
     public function getOne()
     {
-        $this->checkAuth();
+        checkAuth();
 
         if (!Permisos::tienePermiso('ver_usuarios')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tiene permiso para ver usuarios.'], 403);
@@ -71,7 +71,7 @@ class UsersController
      */
     public function getAll()
     {
-        $this->checkAuth();
+        checkAuth();
         
         switch (true){
             case Permisos::tienePermiso('listar_usuarios'):
@@ -126,7 +126,7 @@ class UsersController
      */
     public function create()
     {
-        $this->checkAuth();
+        checkAuth();
 
         if (!Permisos::tienePermiso('crear_usuarios')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para crear usuarios."], 403);
@@ -179,7 +179,7 @@ class UsersController
      */
     public function update()
     {
-        $this->checkAuth();
+        checkAuth();
 
         if (!Permisos::tienePermiso('editar_usuarios')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para editar usuarios."], 403);
@@ -237,7 +237,7 @@ class UsersController
      */
     public function changeStatusOrPassword()
     {
-        $this->checkAuth();
+        checkAuth();
 
         if (!Permisos::tienePermiso('editar_usuarios')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para modificar usuarios."], 403);
@@ -295,7 +295,7 @@ class UsersController
      */
     public function delete()
     {
-        $this->checkAuth();
+        checkAuth();
 
         if (!Permisos::tienePermiso('eliminar_usuarios')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para eliminar usuarios."], 403);
