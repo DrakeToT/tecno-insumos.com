@@ -73,7 +73,7 @@ class UsersController
     {
         $this->checkAuth();
 
-        if (!Permisos::tienePermiso('ver_usuarios')) {
+        if (!Permisos::tienePermiso('listar_usuarios')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tiene permiso para ver usuarios.'], 403);
         }
 
