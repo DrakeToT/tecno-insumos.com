@@ -366,9 +366,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Detectar cambio de Estado (Disponible -> Asignado)
     selectEstado.addEventListener("change", (e) => {
         if (e.target.value === "Asignado") {
+            formEquipo.ubicacion_detalle.parentNode.classList.add("d-none");
             bloqueAsignacion.classList.remove("d-none");
             cargarListasAsignacion(); // Función que crearemos abajo
         } else {
+            formEquipo.ubicacion_detalle.parentNode.classList.remove("d-none");
             bloqueAsignacion.classList.add("d-none");
             limpiarSeleccionAsignacion();
         }
