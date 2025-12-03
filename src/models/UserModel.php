@@ -200,6 +200,25 @@ class UserModel
     }
 
     /**
+     * Listar usuarios activos
+     */
+    public function getAllActive(): array
+    {
+        $sql = "
+            SELECT 
+                u.id, u.nombre, u.apellido, u.email, r.nombre AS rol, u.estado
+            FROM usuarios u
+            JOIN roles r ON u.idRol = r.id
+            WHERE u.estado = 'Activo'
+            ORDER BY u.id ASC
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
      * Cantidad de usuarios por consultar
      */
     public function countAll(string $search = ''): int
