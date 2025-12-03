@@ -40,13 +40,13 @@ class UsersController
 
     /**
      * GET: Obtener un usuario específico por ID
-     * Permiso: ver_usuarios
+     * Permiso: acceder_usuarios
      */
     public function getOne()
     {
         checkAuth();
 
-        if (!Permisos::tienePermiso('ver_usuarios')) {
+        if (!Permisos::tienePermiso('acceder_usuarios')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tiene permiso para ver usuarios.'], 403);
         }
 
@@ -122,13 +122,13 @@ class UsersController
 
     /**
      * POST: Crear Usuario
-     * Permiso: crear_usuarios
+     * Permiso: crear_usuario
      */
     public function create()
     {
         checkAuth();
 
-        if (!Permisos::tienePermiso('crear_usuarios')) {
+        if (!Permisos::tienePermiso('crear_usuario')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para crear usuarios."], 403);
         }
 
@@ -175,13 +175,13 @@ class UsersController
 
     /**
      * PUT: Editar Usuario (Datos completos)
-     * Permiso: editar_usuarios
+     * Permiso: editar_usuario
      */
     public function update()
     {
         checkAuth();
 
-        if (!Permisos::tienePermiso('editar_usuarios')) {
+        if (!Permisos::tienePermiso('editar_usuario')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para editar usuarios."], 403);
         }
 
@@ -233,13 +233,13 @@ class UsersController
 
     /**
      * PATCH: Cambiar Estado o Resetear Password
-     * Permiso: editar_usuarios
+     * Permiso: editar_usuario
      */
     public function changeStatusOrPassword()
     {
         checkAuth();
 
-        if (!Permisos::tienePermiso('editar_usuarios')) {
+        if (!Permisos::tienePermiso('editar_usuario')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para modificar usuarios."], 403);
         }
 
@@ -291,13 +291,13 @@ class UsersController
 
     /**
      * DELETE: Eliminar Usuario
-     * Permiso: eliminar_usuarios
+     * Permiso: eliminar_usuario
      */
     public function delete()
     {
         checkAuth();
 
-        if (!Permisos::tienePermiso('eliminar_usuarios')) {
+        if (!Permisos::tienePermiso('eliminar_usuario')) {
             $this->jsonResponse(["success" => false, "message" => "No tiene permiso para eliminar usuarios."], 403);
         }
 
@@ -323,18 +323,6 @@ class UsersController
     // ====================================================================
     // HELPERS PRIVADOS
     // ====================================================================
-
-    private function checkAuth()
-    {
-        if (!headers_sent()) {
-            header('Content-Type: application/json; charset=utf-8');
-        }
-        if (!isUserLoggedIn()) {
-            echo json_encode(["success" => false, "message" => "Acceso no autorizado."]);
-            http_response_code(401);
-            exit;
-        }
-    }
 
     private function jsonResponse($data, $code = 200)
     {
