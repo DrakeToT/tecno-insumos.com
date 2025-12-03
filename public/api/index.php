@@ -35,9 +35,9 @@ if (isset($_GET['equipos'])) {
 // RECURSO: CATEGORÍAS (?categorias)
 // =============================================================
 if (isset($_GET['categorias'])) {
-    require_once __DIR__ . '/../../src/controllers/EquiposController.php';
-    $controller = new EquiposController();
-    if ($method === 'GET') $controller->getCategorias();
+    require_once __DIR__ . '/../../src/controllers/CategoriasController.php';
+    $controller = new CategoriasController();
+    if ($method === 'GET') $controller->getAll();
     else sendMethodNotAllowed();
     exit;
 }
@@ -46,9 +46,9 @@ if (isset($_GET['categorias'])) {
 // RECURSO: EMPLEADOS (?empleados)
 // =============================================================
 if (isset($_GET['empleados'])) {
-    require_once __DIR__ . '/../../src/controllers/EquiposController.php';
-    $controller = new EquiposController();
-    if ($method === 'GET') $controller->getEmpleados();
+    require_once __DIR__ . '/../../src/controllers/EmpleadosController.php';
+    $controller = new EmpleadosController();
+    if ($method === 'GET') $controller->getAll();
     else sendMethodNotAllowed();
     exit;
 }
@@ -57,9 +57,9 @@ if (isset($_GET['empleados'])) {
 // RECURSO: AREAS (?areas)
 // =============================================================
 if (isset($_GET['areas'])) {
-    require_once __DIR__ . '/../../src/controllers/EquiposController.php';
-    $controller = new EquiposController();
-    if ($method === 'GET') $controller->getAreas();
+    require_once __DIR__ . '/../../src/controllers/AreasController.php';
+    $controller = new AreasController();
+    if ($method === 'GET') $controller->getAll();
     else sendMethodNotAllowed();
     exit;
 }
