@@ -392,7 +392,7 @@ class EquiposController
     {
         checkAuth();
 
-        if (!Permisos::tienePermiso('eliminar_equipos')) {
+        if (!Permisos::tienePermiso('eliminar_equipo')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para eliminar equipos.'], 403);
         }
 
