@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 30-11-2025 a las 22:48:30
+-- Tiempo de generación: 04-12-2025 a las 05:17:16
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -123,12 +123,12 @@ CREATE TABLE `equipos` (
 --
 
 INSERT INTO `equipos` (`id`, `codigo_inventario`, `id_categoria`, `marca`, `modelo`, `numero_serie`, `estado`, `ubicacion_detalle`, `fecha_adquisicion`, `proveedor`, `valor_compra`, `observaciones`, `fecha_creacion`, `fecha_actualizacion`, `asignado_tipo`, `asignado_id`) VALUES
-(1, 'NB-001', 1, 'Dell', 'Latitude 5420', '8H29GK2', 'Disponible', 'Depósito IT - Estante A', '2023-01-15', 'Dell Direct', 1200.00, 'Equipo nuevo, listo para asignar.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
+(1, 'NB-001', 1, 'Dell', 'Latitude 5420', '8H29GK2', 'Asignado', 'Usuario: Ezequiel Fernandez', '2023-01-15', 'Dell Direct', 1200.00, 'Equipo nuevo, listo para asignar.', '2025-11-24 15:46:19', '2025-12-04 01:10:03', 'usuario', 1),
 (2, 'NB-002', 1, 'HP', 'ProBook 450 G8', 'CND1234X', 'Asignado', 'Oficina RRHH', '2022-11-20', 'Compumundo', 950.50, 'Asignada a Gerente RRHH.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
 (3, 'NB-003', 1, 'Lenovo', 'ThinkPad T14', 'LNV-998877', 'En reparacion', 'Servicio Técnico Externo', '2021-06-10', 'Lenovo Corp', 1100.00, 'Falla en disco duro, enviado a garantía.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
 (4, 'NB-004', 1, 'Apple', 'MacBook Air M1', 'C02F1234', 'Disponible', 'Depósito IT - Caja Fuerte', '2023-05-05', 'MacStation', 999.00, 'Reservada para Diseño.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
 (5, 'NB-005', 1, 'Dell', 'Vostro 3510', '7J19HL3', 'Baja', 'Depósito Residuos Electrónicos', '2019-03-15', 'Dell Direct', 600.00, 'Pantalla rota y placa madre quemada. Irreparable.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
-(6, 'MON-101', 2, 'Samsung', 'F24T35', 'Z123456', 'Disponible', 'Depósito IT - Estante B', '2023-02-01', 'Samsung Store', 180.00, 'Monitor 24 pulgadas IPS.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
+(6, 'MON-101', 2, 'Samsung', 'F24T35', 'Z123456', 'En reparacion', 'Depósito IT', '2023-02-01', 'Samsung Store', 180.00, 'Monitor 24 pulgadas IPS.No enciende.', '2025-11-24 15:46:19', '2025-12-04 01:15:45', NULL, NULL),
 (7, 'MON-102', 2, 'LG', '29WP500', 'LG-ULTRA-01', 'Asignado', 'Oficina Desarrollo', '2023-02-01', 'Amazon', 250.00, 'Monitor Ultrawide para programadores.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
 (8, 'MON-103', 2, 'Dell', 'P2419H', 'CN-0H', 'Disponible', 'Depósito IT - Estante B', '2022-08-15', 'Dell Direct', 210.00, NULL, '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
 (9, 'PER-201', 3, 'Logitech', 'MX Master 3', 'LN-MOUSE-01', 'Asignado', 'Oficina Diseño', '2023-07-20', 'Logitech Store', 99.99, 'Mouse ergonómico.', '2025-11-24 15:46:19', '2025-11-24 15:46:19', NULL, NULL),
@@ -158,7 +158,11 @@ CREATE TABLE `movimientos_equipos` (
 --
 
 INSERT INTO `movimientos_equipos` (`id`, `id_equipo`, `id_usuario`, `tipo_movimiento`, `fecha`, `observaciones`) VALUES
-(21, 40, 2, 'Alta', '2025-11-30 16:24:11', 'Registro inicial del equipo.');
+(21, 40, 2, 'Alta', '2025-11-30 16:24:11', 'Registro inicial del equipo.'),
+(22, 6, 2, 'Asignacion', '2025-12-03 13:44:26', 'Motivo: Asignación al área de contabilidad. - Estado: \'Disponible\' -> \'Asignado\', Ubicación: \'Depósito IT - Estante B\' -> \'Área: Contabilidad\'.'),
+(25, 6, 2, 'Ajuste', '2025-12-04 01:05:55', 'Motivo: Se mueve el equipo a otra área. - Ubicación: \'Área: Contabilidad\' -> \'Área: Recursos Humanos\'.'),
+(26, 1, 2, 'Asignacion', '2025-12-04 01:10:03', 'Motivo: Asignación del equipo al Usuario. - Estado: \'Disponible\' -> \'Asignado\', Ubicación: \'Depósito IT - Estante A\' -> \'Usuario: Ezequiel Fernandez\'.'),
+(27, 6, 2, 'Reparacion', '2025-12-04 01:15:45', 'Motivo: Se lleva a soporte para solucionar problema de encendido. - Estado: \'Asignado\' -> \'En reparacion\', Ubicación: \'Área: Recursos Humanos\' -> \'Depósito IT\'.');
 
 -- --------------------------------------------------------
 
@@ -177,10 +181,10 @@ CREATE TABLE `permisos` (
 --
 
 INSERT INTO `permisos` (`id`, `nombre`, `descripcion`) VALUES
-(1, 'ver_usuarios', 'Puede visualizar la lista de usuarios'),
-(2, 'crear_usuarios', 'Puede crear nuevos usuarios'),
-(3, 'editar_usuarios', 'Puede editar los datos de usuarios'),
-(4, 'eliminar_usuarios', 'Puede eliminar usuarios'),
+(1, 'acceder_usuarios', 'Permite acceder a la vista de gestión de usuarios.'),
+(2, 'crear_usuario', 'Permite registrar un nuevo usuario.'),
+(3, 'editar_usuario', 'Permite modificar datos de un usuario existente.'),
+(4, 'eliminar_usuario', 'Permite eliminar un usuario del sistema.'),
 (5, 'ver_reportes', 'Puede ver reportes del sistema'),
 (6, 'gestionar_stock', 'Puede crear o modificar insumos'),
 (7, 'gestionar_mantenimientos', 'Puede registrar y actualizar reparaciones'),
@@ -189,11 +193,23 @@ INSERT INTO `permisos` (`id`, `nombre`, `descripcion`) VALUES
 (16, 'editar_roles', 'Permite editar roles existentes'),
 (17, 'eliminar_roles', 'Permite eliminar roles'),
 (18, 'asignar_permisos', 'Permite asignar permisos a los roles'),
-(19, 'ver_inventario', 'Permite ver el listado y detalles de equipos'),
-(20, 'crear_equipos', 'Permite dar de alta nuevos equipos'),
-(21, 'editar_equipos', 'Permite modificar datos de equipos existentes'),
-(22, 'eliminar_equipos', 'Permite eliminar equipos del sistema'),
-(23, 'editar_perfil', 'Permite modificar nombre, apellido y email del propio perfil');
+(19, 'acceder_inventario', 'Permite acceder a la vista de gestión de inventario.\r\n'),
+(20, 'crear_equipo', 'Permite registrar un nuevo equipo en el inventario.'),
+(21, 'editar_equipo', 'Permite modificar los datos de un equipo existente.'),
+(22, 'eliminar_equipo', 'Permite eliminar un equipo del sistema.'),
+(23, 'editar_perfil', 'Permite modificar nombre, apellido y email del propio perfil'),
+(24, 'listar_usuarios', 'Permite obtener la lista completa de usuarios.'),
+(25, 'listar_equipos', 'Permite acceder al listado de equipos registrados en el sistema.'),
+(26, 'consultar_usuario', 'Permite consultar la información de un usuario específico.'),
+(27, 'consultar_equipo', 'Permite consultar la información detallada de un equipo específico mediante su identificador.'),
+(28, 'listar_categorias', 'Permite obtener el listado completo de categorías registradas en el sistema.'),
+(29, 'listar_empleados', 'Permite obtener el listado completo de empleados registrados en el sistema.'),
+(30, 'listar_areas', 'Permite obtener el listado completo de áreas o sectores registrados en la empresa.'),
+(31, 'consultar_historial_equipo', 'Permite consultar el historial de movimientos asociados a un equipo específico.'),
+(32, 'listar_categorias_activas', 'Permite obtener únicamente las categorías activas.'),
+(33, 'listar_empleados_activos', 'Permite obtener únicamente los empleados activos.'),
+(34, 'listar_usuarios_activos', 'Permite obtener únicamente los usuarios activos.'),
+(35, 'listar_areas_activas', 'Permite obtener únicamente las áreas activas.');
 
 -- --------------------------------------------------------
 
@@ -236,23 +252,31 @@ CREATE TABLE `rolespermisos` (
 --
 
 INSERT INTO `rolespermisos` (`id`, `idRol`, `idPermiso`) VALUES
-(97, 1, 1),
-(90, 1, 2),
-(92, 1, 3),
-(94, 1, 4),
-(95, 1, 5),
-(96, 1, 14),
-(89, 1, 15),
-(91, 1, 16),
-(93, 1, 17),
-(88, 1, 18),
-(98, 1, 23),
-(108, 2, 5),
-(106, 2, 6),
-(107, 2, 19),
-(104, 2, 20),
-(105, 2, 21),
-(109, 2, 22),
+(142, 1, 1),
+(145, 1, 2),
+(148, 1, 3),
+(150, 1, 4),
+(152, 1, 5),
+(153, 1, 14),
+(144, 1, 15),
+(147, 1, 16),
+(149, 1, 17),
+(143, 1, 18),
+(146, 1, 23),
+(151, 1, 24),
+(154, 1, 26),
+(174, 2, 5),
+(172, 2, 6),
+(167, 2, 19),
+(169, 2, 20),
+(170, 2, 21),
+(171, 2, 22),
+(173, 2, 25),
+(168, 2, 27),
+(177, 2, 32),
+(176, 2, 33),
+(175, 2, 34),
+(178, 2, 35),
 (12, 3, 5),
 (11, 3, 7),
 (15, 4, 1),
@@ -282,7 +306,7 @@ CREATE TABLE `usuarios` (
 
 INSERT INTO `usuarios` (`id`, `nombre`, `apellido`, `email`, `password`, `idRol`, `estado`, `fechaAlta`, `fotoPerfil`) VALUES
 (1, 'Ezequiel', 'Fernandez', 'admin@tecnoinsumos.com', '$2y$10$iJcf6SlH/qsSm0nfWrEa/uzOUuiHPLEw5php/YbP9elUdH0ukU7sy', 1, 'Activo', '2025-10-17 13:17:24', 'perfil_1_1764015245.jpg'),
-(2, 'Gonzalo', 'Fernandez', 'stock@tecnoinsumos.com', '$2y$10$Wm38WelPtSK99npv3LUvCubhBHS.U6F6.vu9JWeKAvtdiLA5BcPly', 2, 'Activo', '2025-10-25 20:19:07', 'perfil_2_1763945974.gif'),
+(2, 'Gonzalo', 'Fernandez', 'stock@tecnoinsumos.com', '$2y$10$FjBsrB9auEY74UFNYaz5AO0uV38vxwLR4.HF.p8QGmD9Lc9VcpxZK', 2, 'Activo', '2025-10-25 20:19:07', 'perfil_2_1764789623.png'),
 (5, 'Nicolas', 'Garrido', 'soporte@tecnoinsumos.com', '$2y$10$Kq0pdeTugWhYzxMflXYcduT2JDhA/KlYIhFM19OlouNV0DdPDP3EO', 3, 'Activo', '2025-10-26 18:10:40', 'perfil_5_1764015127.png'),
 (6, 'Max', 'Verstappen', 'MVerstappen@F1.com', '$2y$10$n18d/Kb60ZtHX.ZlrKr7I.G2DhLVzvWp4gFmCvgtbhghKfMkkZY5G', 3, 'Inactivo', '2025-10-27 17:30:43', NULL),
 (7, 'Gerrardo', 'Ibarra', 'coordinador@tecnoinsumos.com', '$2y$10$gyT.h0qqdhCXEDpY8Z82FuH0Jq4B2.9DrH7OjnoZM1kAFMtB3NG1K', 4, 'Activo', '2025-10-27 17:31:25', 'perfil_7_1764015275.jpg'),
@@ -390,19 +414,19 @@ ALTER TABLE `empleados`
 -- AUTO_INCREMENT de la tabla `equipos`
 --
 ALTER TABLE `equipos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientos_equipos`
 --
 ALTER TABLE `movimientos_equipos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos`
 --
 ALTER TABLE `permisos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -414,7 +438,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT de la tabla `rolespermisos`
 --
 ALTER TABLE `rolespermisos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=110;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
