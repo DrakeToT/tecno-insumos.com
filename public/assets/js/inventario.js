@@ -150,12 +150,16 @@ document.addEventListener("DOMContentLoaded", () => {
     /**
      * Carga las listas para asignación (Usuarios, Empleados, Áreas)
      */
-    function cargarListasAsignacion() {
+    function cargarListasAsignacion(eq = null) {
         // Cargar Usuarios
         fetch(API_URL_USUARIOS).then(r => r.json()).then(res => {
             const sel = document.getElementById("selAsignarUsuario");
             sel.innerHTML = '<option value="">Seleccione un usuario</option>';
             res.data.forEach(u => sel.add(new Option(`${u.nombre} ${u.apellido} - ${u.rol}`, u.id)));
+
+            if (eq && eq.asignado_tipo === "usuario") {
+                sel.value = eq.asignado_id;
+            }
         });
 
         // Cargar Empleados
@@ -163,6 +167,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const sel = document.getElementById("selAsignarEmpleado");
             sel.innerHTML = '<option value="">Seleccione un empleado</option>';
             res.data.forEach(e => sel.add(new Option(`${e.nombre} ${e.apellido} - ${e.puesto}`, e.id)));
+
+            if (eq && eq.asignado_tipo === "empleado") {
+                sel.value = eq.asignado_id;
+            }
         });
 
         // Cargar Areas
@@ -170,6 +178,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const sel = document.getElementById("selAsignarArea");
             sel.innerHTML = '<option value="">Seleccione un área</option>';
             res.data.forEach(a => sel.add(new Option(a.nombre, a.id)));
+
+            if (eq && eq.asignado_tipo === "area") {
+                sel.value = eq.asignado_id;
+            }
         });
     }
 
@@ -389,7 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Mostrar el select correspondiente
             const tipo = e.target.value;
             let selectId = "";
-            
+
             if (tipo === "usuario") selectId = "selAsignarUsuario";
             if (tipo === "empleado") selectId = "selAsignarEmpleado";
             if (tipo === "area") selectId = "selAsignarArea";
@@ -425,6 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formEquipo.reset();
         formEquipo.classList.remove('was-validated');
         limpiarValidaciones();
+        limpiarSeleccionAsignacion();
 
         // Títulos
         modalTitle.textContent = "Nuevo Equipo";
@@ -433,6 +446,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Ocultar motivo cambio
         divMotivo.classList.add("d-none");
         inputMotivo.required = false;
+
+        // Ocultar bloque asignación
+        bloqueAsignacion.classList.add("d-none");
+
+        // Asegurar que el campo de ubicación esté visible
+        formEquipo.ubicacion_detalle.parentNode.classList.remove("d-none");
 
         // Valor por defecto
         if (formEquipo.estado) formEquipo.estado.value = "Disponible";
@@ -470,6 +489,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     inputMotivo.value = "";
                     inputMotivo.required = true;
 
+                    // Ajustar vista según estado
+                    if (eq.estado === "Asignado") {
+                        // Si está asignado, ocultar ubicación manual y mostrar bloque de asignación
+                        formEquipo.ubicacion_detalle.parentNode.classList.add("d-none");
+                        bloqueAsignacion.classList.remove("d-none");
+                        // Seleccionar tipo y cargar listas
+                        radiosTipo.forEach(radio => {
+                            if (radio.value === eq.asignado_tipo) {
+                                radio.checked = true;
+                                radio.dispatchEvent(new Event('change'));
+                            }
+                        });
+                        cargarListasAsignacion(eq);
+
+                    } else {
+                        // Si NO está asignado, restaurar vista normal
+                        formEquipo.ubicacion_detalle.parentNode.classList.remove("d-none");
+                        bloqueAsignacion.classList.add("d-none");
+                        limpiarSeleccionAsignacion();
+                    }
                     // Títulos
                     modalTitle.textContent = "Datos del Equipo";
                     modalTitleIcon.className = "bi bi-pencil-square";
@@ -477,6 +516,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     formEquipo.classList.remove('was-validated');
                     limpiarValidaciones();
                     modalEquipoForm.show();
+
+
                 } else {
                     mostrarMensaje("No se encontró el equipo.", "Error", "danger");
                 }
