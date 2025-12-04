@@ -14,51 +14,65 @@
 
                 <div class="modal-body">
                     <input type="hidden" name="id">
-
+                                        
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Código Inventario *</label>
-                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="codigo_inventario" required>
+                            <div class="form-floating">
+                                <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="codigo_inventario" id="codigo_inventario" placeholder="Código de Inventario" title="Se asigna según la categoría seleccionada." readonly>
+                                <label class="form-label" for="codigo_inventario">Código Inventario</label>
+                            </div>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Categoría *</label>
-                            <select class="form-select border-dark-subtle focus-ring focus-ring-dark" name="id_categoria" required>
-                                <option value="">Seleccione una categoría</option>
-                            </select>
+                            <div class="form-floating">
+                                <select class="form-select border-dark-subtle focus-ring focus-ring-dark" name="id_categoria" required>
+                                    <option value="">
+                                        Cargando...
+                                    </option>
+                                </select>
+                                <label class="form-label">Categoría</label>
+                            </div>
                             <div class="invalid-feedback">Seleccione una categoría.</div>
                         </div>
                     </div>
 
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Marca *</label>
-                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="marca" required>
+                            <div class="form-floating">
+                                <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="marca" placeholder="Ingrese la marca del Equipo" required>
+                                <label class="form-label">Marca</label>
+                            </div>
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Modelo</label>
-                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="modelo">
+                            <div class="form-floating">
+                                <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="modelo">
+                                <label class="form-label">Modelo</label>
+                            </div>
                         </div>
-                        
+
                     </div>
-                    
+
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Número de Serie</label>
-                            <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="numero_serie">
+                            <div class="form-floating">
+                                <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="numero_serie">
+                                <label class="form-label">Número de Serie</label>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Estado</label>
-                            <select class="form-select border-dark-subtle focus-ring focus-ring-dark" name="estado">
-                                <option value="Disponible">Disponible</option>
-                                <option value="Asignado">Asignado</option>
-                                <option value="En reparacion">En Reparación</option>
-                                <option value="Baja">Baja</option>
-                            </select>
+                            <div class="form-floating">
+                                <select class="form-select border-dark-subtle focus-ring focus-ring-dark" name="estado">
+                                    <option value="Disponible">Disponible</option>
+                                    <option value="Asignado">Asignado</option>
+                                    <option value="En reparacion">En Reparación</option>
+                                    <option value="Baja">Baja</option>
+                                </select>
+                                <label class="form-label">Estado</label>
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="row m-0 d-none p-3 bg-light border border-dark-subtle rounded" id="bloqueAsignacion">
                         <p class="fw-bold mb-1 p-0">¿A quién se asigna?</p>
 

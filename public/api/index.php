@@ -37,8 +37,15 @@ if (isset($_GET['equipos'])) {
 if (isset($_GET['categorias'])) {
     require_once __DIR__ . '/../../src/controllers/CategoriasController.php';
     $controller = new CategoriasController();
-    if ($method === 'GET') $controller->getAll();
-    else sendMethodNotAllowed();
+
+    switch ($method) {
+        case 'GET':
+            isset($_GET['id']) ? $controller->getById() : $controller->getAll();
+            break;
+        default:
+            sendMethodNotAllowed();
+            break;
+    }
     exit;
 }
 
@@ -91,6 +98,7 @@ if (isset($_GET['users'])) {
             sendMethodNotAllowed();
             break;
     }
+    exit;
 }
 
 // =============================================================

@@ -426,6 +426,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    selectCategoria.addEventListener("change", (e) => {
+        if (!e.target.value) return;
+
+        fetch(`${API_URL_CATEGORIAS}&id=${e.target.value}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    const cat = res.data;
+                    formEquipo.codigo_inventario.value = cat.prefijo + '-';
+                }
+            })
+            .catch(err => console.error("Error cargando categoría", err));
+    });
+
+    
+
     // ========================================================================
     // MODALES AUXILIARES
     // ========================================================================
@@ -536,6 +552,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     modalEquipoForm._element.addEventListener('shown.bs.modal', () => {
-        formEquipo.codigo_inventario.focus();
+        formEquipo.id_categoria.focus();
     });
 });

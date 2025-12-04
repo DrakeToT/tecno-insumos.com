@@ -32,6 +32,20 @@ class CategoriaModel
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Obtiene una categoría activa por ID
+     */
+    public function getActiveById(int $id): ?array
+    {
+        $sql = "SELECT * FROM categorias WHERE id = :id AND estado = 'Activo' LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
     
     /**
      * Obtiene una categoría por ID (útil para validaciones)
