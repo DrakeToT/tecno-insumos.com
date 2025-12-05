@@ -25,7 +25,7 @@ class UsersController
         }
 
         // Validación de permiso para ver la pantalla
-        if (!Permisos::tienePermiso('ver_usuarios')) {
+        if (!Permisos::tienePermiso('acceder_usuarios')) {
             http_response_code(403);
             require_once __DIR__ . '/../views/errors/403.php';
             exit;
@@ -46,7 +46,7 @@ class UsersController
     {
         checkAuth();
 
-        if (!Permisos::tienePermiso('acceder_usuarios')) {
+        if (!Permisos::tienePermiso('consultar_usuario')) {
             $this->jsonResponse(['success' => false, 'message' => 'No tiene permiso para ver usuarios.'], 403);
         }
 

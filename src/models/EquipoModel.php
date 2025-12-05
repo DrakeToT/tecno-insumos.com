@@ -55,7 +55,7 @@ class EquipoModel
         $stmt->bindParam(':modelo', $like, PDO::PARAM_STR);
         $stmt->bindParam(':serial', $like, PDO::PARAM_STR);
         $stmt->bindParam(':nom_cat', $like, PDO::PARAM_STR);
-        
+
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 
@@ -154,11 +154,10 @@ class EquipoModel
             $stmt->bindValue(':asig_tipo', $data['asignado_tipo'] ?? null, PDO::PARAM_STR);
             $stmt->bindValue(':asig_id', $data['asignado_id'] ?? null, PDO::PARAM_INT);
 
-            if ($stmt->execute()){
+            if ($stmt->execute()) {
                 return (int) $this->conn->lastInsertId();
             }
             return 0;
-
         } catch (PDOException $e) {
             return 0;
         }
@@ -206,11 +205,10 @@ class EquipoModel
             $stmt->bindParam(':proveedor', $data['proveedor'], PDO::PARAM_STR);
             $stmt->bindParam(':valor', $valor, PDO::PARAM_STR);
             $stmt->bindParam(':obs', $data['observaciones'], PDO::PARAM_STR);
-            $stmt->bindValue(':asig_tipo', $data['asignado_tipo'] ?? null, PDO::PARAM_STR); 
+            $stmt->bindValue(':asig_tipo', $data['asignado_tipo'] ?? null, PDO::PARAM_STR);
             $stmt->bindValue(':asig_id', $data['asignado_id'] ?? null, PDO::PARAM_INT);
 
             return $stmt->execute();
-
         } catch (PDOException $e) {
             return false;
         }
@@ -225,14 +223,14 @@ class EquipoModel
         if ($idExcluir) {
             $sql .= " AND id != :id";
         }
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':codigo', $codigo, PDO::PARAM_STR);
-        
+
         if ($idExcluir) {
             $stmt->bindParam(':id', $idExcluir, PDO::PARAM_INT);
         }
-        
+
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
@@ -246,18 +244,55 @@ class EquipoModel
         if ($idExcluir) {
             $sql .= " AND id != :id";
         }
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':serial', $numeroSerie, PDO::PARAM_STR);
-        
+
         if ($idExcluir) {
             $stmt->bindParam(':id', $idExcluir, PDO::PARAM_INT);
         }
-        
+
         $stmt->execute();
         return $stmt->rowCount() > 0;
-    }   
-    
+    }
+
+    public function generarCodigoInventario($id_categoria)
+    {   // Obtener el prefijo de la categoría seleccionada
+        $sqlPrefijo = "SELECT prefijo FROM categorias WHERE id = :id_categoria";
+        $stmt = $this->conn->prepare($sqlPrefijo);
+        $stmt->bindParam(':id_categoria', $id_categoria, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $prefijo = $stmt->fetchColumn(); // obtener solo el dato de la columna 'prefijo' (ej: 'NB')
+
+        if (!$prefijo) {
+            return "ERR-CAT"; // Error si no hay categoría
+        }
+
+        // Buscar el último número usado para ese prefijo
+        // Buscamos el número más alto después del guion '-'
+        $sqlMax = "SELECT MAX(CAST(SUBSTRING_INDEX(codigo_inventario, '-', -1) AS UNSIGNED)) as ultimo_numero 
+               FROM equipos 
+               WHERE codigo_inventario LIKE :prefijo";
+
+        $stmt = $this->conn->prepare($sqlMax);
+        $stmt->bindValue(':prefijo', $prefijo . '-%', PDO::PARAM_STR);
+        $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Si devuelve NULL (es el primero), empezamos en 0. Si no, tomamos el valor.
+        $ultimoNumero = $row['ultimo_numero'] ? $row['ultimo_numero'] : 0;
+
+        // Incrementar y formatear
+        $nuevoNumero = $ultimoNumero + 1;
+
+        // Rellenar con ceros a la izquierda (padding de 4 dígitos: 0001)
+        $codigoFinal = $prefijo . '-' . str_pad($nuevoNumero, 4, "0", STR_PAD_LEFT);
+
+        return $codigoFinal; // Retorna ej:'NB-0001'
+    }
+
     /**
      * Eliminar equipo (físico)
      */

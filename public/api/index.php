@@ -37,8 +37,15 @@ if (isset($_GET['equipos'])) {
 if (isset($_GET['categorias'])) {
     require_once __DIR__ . '/../../src/controllers/CategoriasController.php';
     $controller = new CategoriasController();
-    if ($method === 'GET') $controller->getAll();
-    else sendMethodNotAllowed();
+
+    switch ($method) {
+        case 'GET':
+            isset($_GET['id']) ? $controller->getById() : $controller->getAll();
+            break;
+        default:
+            sendMethodNotAllowed();
+            break;
+    }
     exit;
 }
 
@@ -91,6 +98,7 @@ if (isset($_GET['users'])) {
             sendMethodNotAllowed();
             break;
     }
+    exit;
 }
 
 // =============================================================
@@ -134,6 +142,30 @@ if (isset($_GET['perfil'])) {
         case 'PATCH': $controller->changePassword(); break; // Cambiar password
         case 'POST':  $controller->uploadPhoto(); break;    // Subir foto
         default: sendMethodNotAllowed(); break;
+    }
+    exit;
+}
+
+// =============================================================
+// RECURSO: REPORTES (?reportes)
+// =============================================================
+if (isset($_GET['reportes'])) {
+    require_once __DIR__ . '/../../src/controllers/ReportesController.php';
+    $controller = new ReportesController();
+    $accion = $_GET['accion'] ?? '';
+
+    switch ($method) {
+        case 'GET':
+            if ($accion === 'asignaciones') {
+                $controller->getReporteAsignaciones();
+            } else {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Acción de reporte no especificada.']);
+            }
+            break;
+        default:
+            sendMethodNotAllowed();
+            break;
     }
     exit;
 }
