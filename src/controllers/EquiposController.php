@@ -363,6 +363,32 @@ class EquiposController
             $this->jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
+
+    /**
+     * GET ?equipos&generar_codigo=X
+     * Generar código de inventario único basado en X (id_categoria)
+     */
+    public function generarCodigo()
+    {
+        checkAuth();
+        $permisosNecesarios = ['crear_equipo', 'editar_equipo'];
+        if(!Permisos::tieneAlgunPermiso($permisosNecesarios)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado. No tienes permisos para generar códigos de inventario.'], 403);
+        }
+
+        $base = isset($_GET['generar_codigo']) ? sanitizeInput($_GET['generar_codigo']) : '';
+        if (empty($base)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Parámetro inválido para generar código'], 400);
+        }
+
+        try {
+            $codigoGenerado = $this->equipoModel->generarCodigoInventario($base);
+            $this->jsonResponse(['success' => true, 'data' => ['codigo_inventario' => $codigoGenerado]]);
+        } catch (Exception $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Error al generar código'], 500);
+        }
+    }
+
     /**
      * GET ?historial&id=X
      * Consultar historial de un equipo
@@ -415,8 +441,8 @@ class EquiposController
      */
     public function handleGet(array $params)
     {
-        if (isset($params['historial'])) {
-            $this->getHistorial();
+        if (isset($params['generar_codigo'])) {
+            $this->generarCodigo();
         } elseif (isset($params['id'])) {
             $this->getOne();
         } else {
