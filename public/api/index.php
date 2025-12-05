@@ -147,6 +147,30 @@ if (isset($_GET['perfil'])) {
 }
 
 // =============================================================
+// RECURSO: REPORTES (?reportes)
+// =============================================================
+if (isset($_GET['reportes'])) {
+    require_once __DIR__ . '/../../src/controllers/ReportesController.php';
+    $controller = new ReportesController();
+    $accion = $_GET['accion'] ?? '';
+
+    switch ($method) {
+        case 'GET':
+            if ($accion === 'asignaciones') {
+                $controller->getReporteAsignaciones();
+            } else {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Acción de reporte no especificada.']);
+            }
+            break;
+        default:
+            sendMethodNotAllowed();
+            break;
+    }
+    exit;
+}
+
+// =============================================================
 // COMPATIBILIDAD LEGACY (Usuarios/Roles/Auth siguen con ?action=)
 // =============================================================
 $action = $_GET['action'] ?? '';

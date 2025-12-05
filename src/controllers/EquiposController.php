@@ -108,32 +108,52 @@ class EquiposController
         // Sanitizar y Validar
         $data = $this->sanitizeData($dataRaw);
 
-        if (empty($data['codigo_inventario']) || empty($data['marca']) || $data['id_categoria'] <= 0) {
+        if (empty($data['codigo_inventario']) || empty($data['marca']) || empty($data['modelo']) || empty($data['numero_serie']) || $data['id_categoria'] <= 0) {
             $this->jsonResponse(['success' => false, 'message' => 'Complete los campos obligatorios'], 400);
+        }
+
+        // --- GENERACIÓN DE CÓDIGO DE INVENTARIO ---
+        try {
+            $nuevoCodigo = $this->equipoModel->generarCodigoInventario($data['id_categoria']);
+            
+            if ($nuevoCodigo === "ERR-CAT") {
+                $this->jsonResponse(['success' => false, 'message' => 'Categoría inválida, no se pudo generar el código.'], 409);
+            }
+
+            // Asignamos el código generado al array de datos
+            $data['codigo_inventario'] = $nuevoCodigo;
+
+        } catch (Exception $e) {
+            $this->jsonResponse(['success' => false, 'message' => 'Error generando código: ' . $e->getMessage()], 500);
         }
 
         if ($this->equipoModel->existeCodigo($data['codigo_inventario'])) {
             $this->jsonResponse(['success' => false, 'message' => 'El código ya existe'], 409);
         }
 
-        if (!empty($data['numero_serie'])) {
-            if ($this->equipoModel->existeNumeroSerie($data['numero_serie'])) {
-                $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe'], 409);
-            }
+        if ($this->equipoModel->existeNumeroSerie($data['numero_serie'])) {
+            $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe'], 409);
         }
 
-        // --- LÓGICA DE ASIGNACIÓN EN ALTA ---
-        // Capturar los datos del input
+        // Validaciones de integridad
+        if ($this->equipoModel->existeCodigo($data['codigo_inventario'])) {
+            $this->jsonResponse(['success' => false, 'message' => "El código generado automáticamante ({$data['codigo_inventario']}) ya existe. Intente nuevamente."], 409);
+        }
+
+        if ($this->equipoModel->existeNumeroSerie($data['numero_serie'])) {
+            $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe en el sistema.'], 409);
+        }
+
+        // --- LÓGICA DE ASIGNACIÓN ---
         $asignadoTipo = $dataRaw['asignado_tipo'] ?? null;
         $asignadoId   = isset($dataRaw['asignado_id']) ? sanitizeInt($dataRaw['asignado_id']) : null;
-        $nombreAsignado = ""; // Para usar en el historial
+        $nombreAsignado = ""; 
 
         if ($data['estado'] === 'Asignado') {
             if (empty($asignadoTipo) || empty($asignadoId)) {
                 $this->jsonResponse(['success' => false, 'message' => 'Debe seleccionar a quién asignar el equipo.'], 400);
             }
 
-            // Generar el texto para "ubicacion_detalle" y almacenar para el historial
             $nombreUbicacion = "Asignado";
 
             if ($asignadoTipo === 'usuario') {
@@ -147,63 +167,54 @@ class EquiposController
                 if ($a) $nombreUbicacion = "Área: " . $a['nombre'];
             }
 
-            // Guardamos en el array data que irá al modelo
             $data['asignado_tipo'] = $asignadoTipo;
             $data['asignado_id'] = $asignadoId;
-            $data['ubicacion_detalle'] = $nombreUbicacion; // Sobrescribimos lo que haya puesto el usuario manualmente
-
-            $nombreAsignado = "Asignado: ($nombreUbicacion)"; // Guardamos para el texto del historial
+            $data['ubicacion_detalle'] = $nombreUbicacion; 
+            $nombreAsignado = "Asignado: ($nombreUbicacion)"; 
 
         } else {
-            // Si nace como disponible, limpiamos relaciones
+            // Limpieza si no está asignado
             $data['asignado_tipo'] = null;
             $data['asignado_id'] = null;
-            // Si no escribió ubicación manual, ponemos default
             if ($data['estado'] === 'Disponible' && empty($data['ubicacion_detalle'])) {
                 $data['ubicacion_detalle'] = 'Depósito IT';
             }
         }
 
-        // --- Determinar Tipo de Movimiento Dinámico ---
-        $tipoMovimiento = 'Alta'; // Valor por defecto (para 'Disponible')
-        $obsInicio = "Alta inicial en stock."; // Texto base
+        // --- DETERMINAR TIPO DE MOVIMIENTO ---
+        $tipoMovimiento = 'Alta'; 
+        $obsInicio = "Alta inicial en stock."; 
 
         switch ($data['estado']) {
             case 'Asignado':
                 $tipoMovimiento = 'Asignacion';
                 $obsInicio = "Ingreso directo con asignación. " . $nombreAsignado . ".";
                 break;
-
             case 'En reparacion':
                 $tipoMovimiento = 'Reparacion';
                 $obsInicio = "Ingreso directo a servicio técnico/reparación.";
                 break;
-
             case 'Baja':
                 $tipoMovimiento = 'Baja';
                 $obsInicio = "Registro histórico de equipo dado de baja.";
                 break;
-
-            case 'Disponible':
-            default:
-                $tipoMovimiento = 'Alta';
-                $obsInicio = "Alta inicial. Equipo disponible en stock.";
-                break;
         }
 
-        // Concatenamos la observación del sistema con la nota del usuario
         $obs = $obsInicio . " " . ($data['observaciones'] ?? '');
 
+        // --- GUARDAR EN LA DB ---
         try {
             $nuevoId = $this->equipoModel->create($data);
 
             if ($nuevoId > 0) {
-                $currentUser = currentUser();   // Obtener el usuario actual para saber quién hizo el alta.
+                $currentUser = currentUser();
                 $idUsuario = $currentUser['id'];
 
                 $this->movimientoModel->registrar($nuevoId, $idUsuario, $tipoMovimiento, $obs);
 
-                $this->jsonResponse(['success' => true, 'message' => 'Equipo registrado correctamente'], 201);
+                // Mensaje de éxito devolviendo el código generado para feedback visual
+                $mensaje = 'Equipo registrado correctamente: ' . $data['codigo_inventario'];
+                $this->jsonResponse(['success' => true, 'message' => $mensaje], 201);
             } else {
                 $this->jsonResponse(['success' => false, 'message' => 'Error al guardar en BD'], 500);
             }
@@ -224,41 +235,54 @@ class EquiposController
             $this->jsonResponse(['success' => false, 'message' => 'No tienes permiso para editar equipos.'], 403);
         }
 
-        // En PUT los datos siempre vienen en php://input
         $input = json_decode(file_get_contents("php://input"), true);
         $id = isset($input['id']) ? sanitizeInt($input['id']) : 0;
 
         if ($id <= 0) {
-            $this->jsonResponse(['success' => false, 'message' => 'ID inválido para actualización'], 400);
+            $this->jsonResponse(['success' => false, 'message' => 'ID inválido'], 400);
         }
 
-        // Obtenemos estado previo
+        // Obtener estado actual antes de cambios
         $equipoActual = $this->equipoModel->getById($id);
         if (!$equipoActual) {
             $this->jsonResponse(['success' => false, 'message' => 'Equipo no encontrado'], 404);
         }
-        // Si está de Baja, no se puede editar.
         if ($equipoActual['estado'] === 'Baja') {
-            $this->jsonResponse([
-                'success' => false,
-                'message' => 'No se puede editar un equipo que ya ha sido dado de Baja definitiva.'
-            ], 400);
+            $this->jsonResponse(['success' => false, 'message' => 'No se puede editar un equipo dado de Baja.'], 400);
         }
 
-        // Sanitizar y Validar
+        // Sanitizar datos de entrada
         $data = $this->sanitizeData($input);
         $motivoUsuario = sanitizeInput($input['motivo_cambio'] ?? '');
 
-        // Validar si es edición
         if (empty($motivoUsuario)) {
             $this->jsonResponse(['success' => false, 'message' => 'Debe indicar un motivo para realizar la edición.'], 400);
         }
 
-        // Validar código duplicado (excluyendo el actual)
-        if ($this->equipoModel->existeCodigo($data['codigo_inventario'], $id)) {
-            $this->jsonResponse(['success' => false, 'message' => 'El código ya existe en otro equipo'], 409);
+        // --- CAMBIO DE CÓDIGO DE INVENTARIO ---
+        if ((int)$data['id_categoria'] !== (int)$equipoActual['id_categoria']) {
+            // Generar nuevo código de inventario
+            try {
+                $nuevoCodigo = $this->equipoModel->generarCodigoInventario($data['id_categoria']);
+                
+                if ($nuevoCodigo === "ERR-CAT") {
+                    $this->jsonResponse(['success' => false, 'message' => 'Categoría inválida para generar código.'], 400);
+                }
+                
+                $data['codigo_inventario'] = $nuevoCodigo;
+
+            } catch (Exception $e) {
+                $this->jsonResponse(['success' => false, 'message' => 'Error sistema: ' . $e->getMessage()], 500);
+            }
+        } else {
+            $data['codigo_inventario'] = $equipoActual['codigo_inventario'];
         }
-        // Validar serie duplicada (excluyendo el actual)
+
+        // Validaciones de integridad
+        if ($this->equipoModel->existeCodigo($data['codigo_inventario'], $id)) {
+            $this->jsonResponse(['success' => false, 'message' => "El código resultante '{$data['codigo_inventario']}' ya existe en el sistema."], 409);
+        }
+
         if (!empty($data['numero_serie'])) {
             if ($this->equipoModel->existeNumeroSerie($data['numero_serie'], $id)) {
                 $this->jsonResponse(['success' => false, 'message' => 'El número de serie ya existe en otro equipo'], 409);
@@ -273,8 +297,7 @@ class EquiposController
             if (empty($asignadoTipo) || empty($asignadoId)) {
                 $this->jsonResponse(['success' => false, 'message' => 'Debe seleccionar a quién asignar el equipo.'], 400);
             }
-
-            // Generamos el texto para "ubicacion_detalle"
+            // Resolver nombre para ubicación
             $nombreAsignado = "Asignado";
             if ($asignadoTipo === 'usuario') {
                 $u = $this->userModel->findById($asignadoId);
@@ -289,26 +312,21 @@ class EquiposController
 
             $data['asignado_tipo'] = $asignadoTipo;
             $data['asignado_id'] = $asignadoId;
-            $data['ubicacion_detalle'] = $nombreAsignado; // Sobrescribimos la ubicación manual
-
+            $data['ubicacion_detalle'] = $nombreAsignado; 
         } else {
-            // Si NO está asignado, limpiamos
             $data['asignado_tipo'] = null;
             $data['asignado_id'] = null;
-
-            // Si pasa a disponible y no escribieron ubicación, ponemos una por defecto
             if ($data['estado'] === 'Disponible' && empty($data['ubicacion_detalle'])) {
                 $data['ubicacion_detalle'] = 'Depósito IT';
             }
         }
 
+        // --- GUARDAR EN LA DB (Actualización y registro de cambios) ---
         try {
             if ($this->equipoModel->update($id, $data)) {
 
-                // --- GENERACIÓN DE TRAZABILIDAD ---
+                // Detección de cambios
                 $cambiosDetectados = [];
-
-                // Campos que queremos auditar
                 $camposAuditoría = [
                     'codigo_inventario' => 'Código',
                     'marca' => 'Marca',
@@ -327,11 +345,8 @@ class EquiposController
                     }
                 }
 
-                // --- DETECCIÓN DE CAMBIOS PARA HISTORIAL ---
-                // Determinamos Tipo de Movimiento
-                $tipoMov = 'Ajuste'; // Por defecto es una simple edición de datos
-
-                // Si cambió el estado, tiene prioridad el tipo de movimiento de estado
+                // Determinar tipo de movimiento
+                $tipoMov = 'Ajuste'; 
                 $nuevoEstado = $data['estado'];
                 $estadoAnterior = $equipoActual['estado'];
 
@@ -342,22 +357,22 @@ class EquiposController
                     elseif ($nuevoEstado === 'Baja') $tipoMov = 'Baja';
                 }
 
-                // Construimos la observación final para el historial
-                // Formato: [MOTIVO DEL USUARIO] - [DETALLE DE CAMBIOS]
                 $obsHistorial = "Motivo: " . $motivoUsuario;
-
                 if (!empty($cambiosDetectados)) {
-                    $obsHistorial .= " - " . implode(', ', $cambiosDetectados) . ".";
+                    $obsHistorial .= " - Cambios: " . implode(', ', $cambiosDetectados) . ".";
                 }
 
-                // Registramos siempre que haya cambios O un motivo explícito
                 $idUsuario = currentUser()['id'];
                 $this->movimientoModel->registrar($id, $idUsuario, $tipoMov, $obsHistorial);
 
+                $msgExito = 'Equipo actualizado correctamente.';
+                if ($data['codigo_inventario'] !== $equipoActual['codigo_inventario']) {
+                    $msgExito .= " Nuevo código asignado: " . $data['codigo_inventario'];
+                }
 
-                $this->jsonResponse(['success' => true, 'message' => 'Equipo actualizado correctamente']);
+                $this->jsonResponse(['success' => true, 'message' => $msgExito]);
             } else {
-                $this->jsonResponse(['success' => false, 'message' => 'No se pudo actualizar'], 500);
+                $this->jsonResponse(['success' => false, 'message' => 'No se pudo actualizar la base de datos'], 500);
             }
         } catch (Exception $e) {
             $this->jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
@@ -372,7 +387,7 @@ class EquiposController
     {
         checkAuth();
         $permisosNecesarios = ['crear_equipo', 'editar_equipo'];
-        if(!Permisos::tieneAlgunPermiso($permisosNecesarios)) {
+        if (!Permisos::tieneAlgunPermiso($permisosNecesarios)) {
             $this->jsonResponse(['success' => false, 'message' => 'Acceso denegado. No tienes permisos para generar códigos de inventario.'], 403);
         }
 

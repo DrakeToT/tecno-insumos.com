@@ -55,6 +55,11 @@ switch ($route) {
         $controller = new InventarioController();
         $controller->index();
         exit;
+    case 'reportes':
+        require_once __DIR__ . '/../src/controllers/ReportesController.php';
+        $controller = new ReportesController();
+        $controller->index();
+        exit;
 }
 
 // ========================================

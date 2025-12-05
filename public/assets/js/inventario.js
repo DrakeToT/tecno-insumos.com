@@ -192,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function manejarGuardado(e) {
         e.preventDefault();
         limpiarValidaciones();
+        formEquipo.classList.remove('was-validated');
 
         // Validación HTML5 básica
         if (!formEquipo.checkValidity()) {
@@ -200,11 +201,20 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // Preparar datos
         const formData = new FormData(formEquipo);
         const dataObj = Object.fromEntries(formData.entries());
-
-        // Determinar Verbo HTTP y URL
         const method = estadoApp.accion === "editar" ? "PUT" : "POST";
+
+        // Deshabilitar botón para evitar doble click
+        const btnSubmit = formEquipo.querySelector('button[type="submit"]');
+        const txtOriginal = btnSubmit.innerHTML;
+        const spanner = document.createElement("span");
+        spanner.className = "spinner-border spinner-border-sm";
+        btnSubmit.innerHTML = '';
+        btnSubmit.disabled = true;
+        btnSubmit.appendChild(spanner);
+        btnSubmit.insertAdjacentText('beforeend', ' Guardando...');
 
         try {
             const response = await fetch(API_URL_EQUIPOS, {
@@ -220,12 +230,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 cargarEquipos(); // Recargar tabla
                 mostrarMensaje(result.message, "Éxito", "success");
             } else {
-                mostrarMensaje(result.message || "Error al guardar.", "Atención", "warning");
+                // Error de Código de Inventario Duplicado
+                if (response.status === 409 && result.message.toLowerCase().includes("código")) {
+                    mostrarErrorCampo('codigo_inventario', result.message);
+                } 
+                // Error de Serie Duplicada
+                else if (response.status === 409 && result.message.toLowerCase().includes("serie")) {
+                    mostrarErrorCampo('numero_serie', result.message);
+                }
+                else if (response.status === 409 && result.message.toLowerCase().includes("categoría")) {
+                    mostrarErrorCampo('id_categoria', result.message);
+                }
+                // Error genérico o desconocido -> Mostrar alerta global
+                else {
+                    mostrarMensaje(result.message || "Error al guardar.", "Atención", "warning");
+                }
             }
 
         } catch (error) {
             console.error(error);
             mostrarMensaje("Error crítico al intentar guardar.", "Error", "danger");
+        } finally {
+            // Restaurar botón
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = txtOriginal;
         }
     }
 
@@ -375,6 +403,34 @@ document.addEventListener("DOMContentLoaded", () => {
     function limpiarValidaciones() {
         formEquipo.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
     }
+    
+    // Función para limpiar selección si se arrepiente
+    function limpiarSeleccionAsignacion() {
+        radiosTipo.forEach(r => r.checked = false);
+        selectoresAsignacion.forEach(s => {
+            s.classList.add("d-none");
+            s.value = "";
+            s.required = false;
+            s.removeAttribute("name");
+        });
+    }
+
+    // Función para mostrar error específico en un campo
+    function mostrarErrorCampo(nombreInput, mensajeError) {
+        const input = formEquipo.querySelector(`[name="${nombreInput}"]`);
+        if (input) {
+            // Agregamos la clase de error
+            input.classList.add('is-invalid');
+            
+            // Buscamos el div del feedback y le ponemos el texto del servidor
+            const feedbackDiv = input.parentElement.parentElement.querySelector('.invalid-feedback') 
+                             || input.parentElement.querySelector('.invalid-feedback');
+            
+            if (feedbackDiv) {
+                feedbackDiv.textContent = mensajeError;
+            }
+        }
+    }
 
     // Detectar cambio de Estado (Disponible -> Asignado)
     selectEstado.addEventListener("change", (e) => {
@@ -415,17 +471,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
-
-    // Función para limpiar selección si se arrepiente
-    function limpiarSeleccionAsignacion() {
-        radiosTipo.forEach(r => r.checked = false);
-        selectoresAsignacion.forEach(s => {
-            s.classList.add("d-none");
-            s.value = "";
-            s.required = false;
-            s.removeAttribute("name");
-        });
-    }
 
     selectCategoria.addEventListener("change", (e) => {
         if (!e.target.value) return;

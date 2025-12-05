@@ -20,8 +20,8 @@
                             <div class="form-floating">
                                 <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="codigo_inventario" id="codigo_inventario" placeholder="Código de Inventario" title="Se asigna según la categoría seleccionada." readonly>
                                 <label class="form-label" for="codigo_inventario">Código Inventario</label>
+                                <div class="invalid-feedback"></div>
                             </div>
-                            <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
@@ -30,9 +30,9 @@
                                         Cargando...
                                     </option>
                                 </select>
-                                <label class="form-label">Categoría</label>
+                                <label class="form-label">Categoría </label>
+                                <div class="invalid-feedback">Seleccione una categoría.</div>
                             </div>
-                            <div class="invalid-feedback">Seleccione una categoría.</div>
                         </div>
                     </div>
 
@@ -40,14 +40,15 @@
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="marca" placeholder="Ingrese la marca del Equipo" required>
-                                <label class="form-label">Marca</label>
+                                <label class="form-label">Marca </label>
+                                <div class="invalid-feedback">La marca es obligatoria.</div>
                             </div>
-                            <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="modelo" placeholder="Ingrese el modelo del Equipo" required>
-                                <label class="form-label">Modelo</label>
+                                <label class="form-label">Modelo </label>
+                                <div class="invalid-feedback">El modelo es obligatorio.</div>
                             </div>
                         </div>
 
@@ -57,7 +58,8 @@
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="numero_serie" placeholder="Ingrese el número de serie del Equipo" required>
-                                <label class="form-label">Número de Serie</label>
+                                <label class="form-label">Número de Serie </label>
+                                <div class="invalid-feedback">Error en el número de serie.</div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -75,7 +77,7 @@
                     </div>
 
                     <div class="row m-0 d-none p-3 bg-light border border-dark-subtle rounded" id="bloqueAsignacion">
-                        <p class="fw-bold mb-1 p-0">¿A quién se asigna?</p>
+                        <p class="fw-bold mb-1 p-0">¿A quién se asigna? </p>
 
                         <div class="g-0 mb-2">
                             <div class="form-check form-check-inline">
@@ -147,7 +149,7 @@
 
                     <div class="mb-3 p-3 bg-light border rounded d-none" id="divMotivoCambio">
                         <label class="form-label fw-bold text-dark">
-                            <i class="bi bi-pencil-square"></i> ¿Por qué realizas este cambio? *
+                            <i class="bi bi-pencil-square"></i> ¿Por qué realizas este cambio? 
                         </label>
                         <input type="text" class="form-control border-dark-subtle focus-ring focus-ring-dark" name="motivo_cambio" id="inputMotivoCambio" placeholder="Ej: Corregí error de tipeo en el serial / Actualicé el precio">
                         <div class="form-text">Este comentario quedará guardado en el historial.</div>
