@@ -273,10 +273,10 @@ class EquipoModel
         // Buscamos el número más alto después del guion '-'
         $sqlMax = "SELECT MAX(CAST(SUBSTRING_INDEX(codigo_inventario, '-', -1) AS UNSIGNED)) as ultimo_numero 
                FROM equipos 
-               WHERE codigo_inventario LIKE ':prefijo-%'";
+               WHERE codigo_inventario LIKE :prefijo";
 
         $stmt = $this->conn->prepare($sqlMax);
-        $stmt->bindValue(':prefijo', $prefijo, PDO::PARAM_STR);
+        $stmt->bindValue(':prefijo', $prefijo . '-%', PDO::PARAM_STR);
         $stmt->execute();
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
