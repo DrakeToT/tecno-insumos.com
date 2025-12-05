@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.querySelector("#modalTitle span");
     const modalTitleIcon = document.querySelector("#modalTitleIcon");
     const selectCategoria = formEquipo.querySelector("select[name='id_categoria']");
+    const inputCodigoInventario = formEquipo.querySelector("input[name='codigo_inventario']");
     const divMotivo = document.querySelector("#divMotivoCambio");
     const inputMotivo = document.querySelector("#inputMotivoCambio");
     const bloqueAsignacion = document.getElementById("bloqueAsignacion");
@@ -435,12 +436,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (res.success) {
                     const cat = res.data;
                     formEquipo.codigo_inventario.value = cat.prefijo + '-';
+                    formEquipo.codigo_inventario.dispatchEvent(new Event('change'));
                 }
             })
             .catch(err => console.error("Error cargando categoría", err));
     });
 
-    
+    inputCodigoInventario.addEventListener("change", (e) => {
+        if (!e.target.value) return;
+        const currentValue = selectCategoria.value;
+        fetch(`${API_URL_EQUIPOS}&generar_codigo=${currentValue}`)
+            .then(r => r.json())
+            .then(res => {
+                if(res.success) {
+                    const cod = res.data.codigo_inventario;
+                    formEquipo.codigo_inventario.value = cod;
+                }
+            })
+            .catch(err => console.error("Error generando código de inventario", err));
+    });
+
 
     // ========================================================================
     // MODALES AUXILIARES
@@ -553,5 +568,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     modalEquipoForm._element.addEventListener('shown.bs.modal', () => {
         formEquipo.id_categoria.focus();
+        formEquipo.observaciones.addEventListener("focus", (e) => {
+            e.target.setAttribute("rows", "4");
+            e.target.classList.toggle("h-auto", true);
+        });
+
+        formEquipo.observaciones.addEventListener("blur", (e) => {
+            if (!e.target.value) {
+                e.target.removeAttribute("rows");
+                e.target.classList.toggle("h-auto", false);
+            }
+        });
     });
 });
