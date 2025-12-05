@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-12-2025 a las 22:54:46
+-- Tiempo de generación: 05-12-2025 a las 18:59:16
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -124,22 +124,24 @@ CREATE TABLE `equipos` (
 --
 
 INSERT INTO `equipos` (`id`, `codigo_inventario`, `id_categoria`, `marca`, `modelo`, `numero_serie`, `estado`, `ubicacion_detalle`, `fecha_adquisicion`, `proveedor`, `valor_compra`, `observaciones`, `fecha_creacion`, `fecha_actualizacion`, `asignado_tipo`, `asignado_id`) VALUES
-(1, 'NB-1001', 1, 'Dell', 'Latitude 3520', 'SR-DELL-001', 'Disponible', 'Depósito Central - Estante A', '2025-11-01', 'Dell Direct', 1100.00, 'Equipo nuevo.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(2, 'MON-2001', 2, 'Samsung', 'T350 24\"', 'SR-SAM-001', 'Disponible', 'Depósito Central - Estante B', '2025-10-15', 'Samsung Store', 200.00, 'Monitor stock.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(3, 'PER-3001', 3, 'Logitech', 'MK270 Combo', 'SR-LOG-001', 'Disponible', 'Armario IT - Cajón 2', '2025-11-20', 'MercadoLibre', 35.00, 'Kit inalámbrico.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(4, 'RED-6001', 6, 'Ubiquiti', 'UniFi AP AC', 'SR-UBI-001', 'Disponible', 'Depósito IT', '2025-09-10', 'USA Tech', 150.00, 'Access Point.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(5, 'NB-1002', 1, 'HP', 'ProBook 450', 'SR-HP-002', 'Asignado', 'Oficina Gerencia', '2024-05-20', 'HP Store', 1300.00, 'Gerencia.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', 'usuario', 1),
-(6, 'MON-2002', 2, 'LG', '27MK600', 'SR-LG-002', 'Asignado', 'Recepción', '2024-03-10', 'Amazon', 250.00, 'Recepción.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', 'empleado', 2),
-(7, 'PRT-5001', 5, 'Epson', 'L3150', 'SR-EPS-002', 'Asignado', 'Área Contable', '2023-12-01', 'Office Depot', 300.00, 'Compartida.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', 'area', 3),
-(8, 'PER-3002', 3, 'HyperX', 'Cloud Flight', 'SR-HYP-002', 'Asignado', 'Soporte IT', '2025-01-15', 'Compra Gamer', 100.00, 'Headset.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', 'usuario', 5),
-(9, 'NB-1003', 1, 'Lenovo', 'ThinkPad E14', 'SR-LEN-003', 'En reparacion', 'Laboratorio Externo', '2023-08-15', 'Lenovo Corp', 900.00, 'Falla placa.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(10, 'MON-2003', 2, 'ViewSonic', 'VA2405', 'SR-VIEW-003', 'En reparacion', 'Mesa de Trabajo IT', '2022-11-30', 'Local PC', 180.00, 'No enciende.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(11, 'SRV-4001', 4, 'Dell', 'PowerEdge T40', 'SR-SRV-003', 'En reparacion', 'Sala Servidores', '2021-06-20', 'Dell Ent', 2500.00, 'Fallo RAID.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(12, 'PRT-5002', 5, 'HP', 'LaserJet M428', 'SR-HPP-003', 'En reparacion', 'Taller Propio', '2022-04-10', 'HP Store', 450.00, 'Cambio fusor.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(13, 'NB-1004', 1, 'Compaq', 'Presario CQ56', 'SR-OLD-004', 'Baja', 'Depósito Basura Elec.', '2015-01-01', 'Desconocido', 500.00, 'Obsoleto.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(14, 'MON-2004', 2, 'Samsung', 'SyncMaster 17\"', 'SR-OLD-005', 'Baja', 'Donación Escuela', '2014-05-20', 'Compumundo', 150.00, 'Donado.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(15, 'PER-3003', 3, 'Genius', 'Mouse PS/2', 'SR-OLD-006', 'Baja', 'Reciclaje', '2012-10-10', 'Librería', 10.00, 'Roto.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
-(16, 'RED-6002', 6, 'Cisco', 'Linksys WRT54G', 'SR-OLD-007', 'Baja', 'Depósito Residuos', '2010-03-15', 'Cisco', 80.00, 'Viejo.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL);
+(1, 'NB-0001', 1, 'Dell', 'Latitude 3520', 'SR-DELL-001', 'Disponible', 'Depósito Central - Estante A', '2025-11-01', 'Dell Direct', 1100.00, 'Equipo nuevo.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(2, 'PRT-0004', 5, 'Samsung', 'T350 24\"', 'SR-SAM-001', 'Disponible', 'Depósito Central - Estante B', '2025-10-15', 'Samsung Store', 200.00, 'Monitor stock.', '2025-12-04 15:39:10', '2025-12-05 14:27:04', NULL, NULL),
+(3, 'PER-0001', 3, 'Logitech', 'MK270 Combo', 'SR-LOG-001', 'Disponible', 'Armario IT - Cajón 2', '2025-11-20', 'MercadoLibre', 35.00, 'Kit inalámbrico.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(4, 'RED-0001', 6, 'Ubiquiti', 'UniFi AP AC', 'SR-UBI-001', 'Disponible', 'Depósito IT', '2025-09-10', 'USA Tech', 150.00, 'Access Point.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(5, 'NB-0002', 1, 'HP', 'ProBook 450', 'SR-HP-002', 'Asignado', 'Oficina Gerencia', '2024-05-20', 'HP Store', 1300.00, 'Gerencia.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', 'usuario', 1),
+(6, 'MON-0002', 2, 'LG', '27MK600', 'SR-LG-002', 'Asignado', 'Recepción', '2024-03-10', 'Amazon', 250.00, 'Recepción.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', 'empleado', 2),
+(7, 'PRT-0001', 5, 'Epson', 'L3150', 'SR-EPS-002', 'Asignado', 'Área Contable', '2023-12-01', 'Office Depot', 300.00, 'Compartida.', '2025-12-04 15:39:10', '2025-12-05 12:12:49', 'area', 3),
+(8, 'PER-0002', 3, 'HyperX', 'Cloud Flight', 'SR-HYP-002', 'Asignado', 'Soporte IT', '2025-01-15', 'Compra Gamer', 100.00, 'Headset.', '2025-12-04 15:39:10', '2025-12-05 12:12:57', 'usuario', 5),
+(9, 'NB-0003', 1, 'Lenovo', 'ThinkPad E14', 'SR-LEN-003', 'En reparacion', 'Laboratorio Externo', '2023-08-15', 'Lenovo Corp', 900.00, 'Falla placa.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(10, 'MON-0003', 2, 'ViewSonic', 'VA2405', 'SR-VIEW-003', 'En reparacion', 'Mesa de Trabajo IT', '2022-11-30', 'Local PC', 180.00, 'No enciende.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(11, 'SRV-0001', 4, 'Dell', 'PowerEdge T40', 'SR-SRV-003', 'En reparacion', 'Sala Servidores', '2021-06-20', 'Dell Ent', 2500.00, 'Fallo RAID.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(12, 'PRT-0002', 5, 'HP', 'LaserJet M428', 'SR-HPP-003', 'En reparacion', 'Taller Propio', '2022-04-10', 'HP Store', 450.00, 'Cambio fusor.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(13, 'NB-0004', 1, 'Compaq', 'Presario CQ56', 'SR-OLD-004', 'Baja', 'Depósito Basura Elec.', '2015-01-01', 'Desconocido', 500.00, 'Obsoleto.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(14, 'MON-0004', 2, 'Samsung', 'SyncMaster 17\"', 'SR-OLD-005', 'Baja', 'Donación Escuela', '2014-05-20', 'Compumundo', 150.00, 'Donado.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(15, 'PER-0003', 3, 'Genius', 'Mouse PS/2', 'SR-OLD-006', 'Baja', 'Reciclaje', '2012-10-10', 'Librería', 10.00, 'Roto.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(16, 'RED-0002', 6, 'Cisco', 'Linksys WRT54G', 'SR-OLD-007', 'Baja', 'Depósito Residuos', '2010-03-15', 'Cisco', 80.00, 'Viejo.', '2025-12-04 15:39:10', '2025-12-04 15:39:10', NULL, NULL),
+(17, 'MON-0005', 2, 'ViewSonic', 'VX2728J-2K', 'VS19278', 'Asignado', 'Usuario: Ezequiel Fernandez', NULL, '', NULL, 'Pulgadas: 27’’. Resolución: 2560x1440. Frecuencia: 180Hz.', '2025-12-05 13:32:38', '2025-12-05 13:40:46', 'usuario', 1),
+(18, 'PRT-0003', 5, 'Epson', 'EcoTank', 'ET-1828', 'Disponible', 'Depósito IT', NULL, '', NULL, 'No imprime a color', '2025-12-05 14:12:55', '2025-12-05 14:12:55', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -155,6 +157,31 @@ CREATE TABLE `movimientos_equipos` (
   `fecha` datetime DEFAULT current_timestamp(),
   `observaciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `movimientos_equipos`
+--
+
+INSERT INTO `movimientos_equipos` (`id`, `id_equipo`, `id_usuario`, `tipo_movimiento`, `fecha`, `observaciones`) VALUES
+(1, 5, 1, 'Asignacion', '2025-12-04 15:39:10', 'Ingreso directo con asignación. Usuario: Ezequiel Fernandez.'),
+(2, 6, 1, 'Asignacion', '2025-12-04 15:39:10', 'Ingreso directo con asignación. Empleado: Maria Lopez.'),
+(3, 7, 1, 'Asignacion', '2025-12-04 15:39:10', 'Ingreso directo con asignación. Área: Contabilidad.'),
+(4, 8, 1, 'Asignacion', '2025-12-04 15:39:10', 'Ingreso directo con asignación. Usuario: Nicolas Garrido.'),
+(5, 1, 1, 'Alta', '2025-12-04 15:39:10', 'Alta inicial. Equipo nuevo disponible en Depósito Central.'),
+(6, 2, 1, 'Alta', '2025-12-04 15:39:10', 'Alta inicial. Monitor de stock disponible en Depósito Central.'),
+(7, 3, 1, 'Alta', '2025-12-04 15:39:10', 'Alta inicial. Periférico disponible en Armario IT.'),
+(8, 4, 1, 'Alta', '2025-12-04 15:39:10', 'Alta inicial. Equipo de red disponible en Depósito IT.'),
+(9, 9, 1, 'Reparacion', '2025-12-04 15:39:10', 'Ingreso directo a reparación. Detalle: Falla placa. Ubicación: Laboratorio Externo.'),
+(10, 10, 1, 'Reparacion', '2025-12-04 15:39:10', 'Ingreso directo a reparación. Detalle: No enciende. Ubicación: Mesa de Trabajo IT.'),
+(11, 11, 1, 'Reparacion', '2025-12-04 15:39:10', 'Ingreso directo a reparación. Detalle: Fallo RAID. Ubicación: Sala Servidores.'),
+(12, 12, 1, 'Reparacion', '2025-12-04 15:39:10', 'Ingreso directo a reparación. Detalle: Cambio fusor. Ubicación: Taller Propio.'),
+(13, 13, 1, 'Baja', '2025-12-04 15:39:10', 'Registro histórico de baja. Motivo: Obsoleto. Destino: Depósito Basura Elec.'),
+(14, 14, 1, 'Baja', '2025-12-04 15:39:10', 'Registro histórico de baja. Motivo: Donado. Destino: Donación Escuela.'),
+(15, 15, 1, 'Baja', '2025-12-04 15:39:10', 'Registro histórico de baja. Motivo: Roto. Destino: Reciclaje.'),
+(16, 16, 1, 'Baja', '2025-12-04 15:39:10', 'Registro histórico de baja. Motivo: Viejo. Destino: Depósito Residuos.'),
+(17, 17, 2, 'Alta', '2025-12-05 13:32:38', 'Alta inicial. Equipo disponible en stock. Resolución: 2560x1440Frecuencia: 180Hz'),
+(21, 18, 2, 'Alta', '2025-12-05 14:12:55', 'Alta inicial en stock. No imprime a color'),
+(22, 2, 2, 'Ajuste', '2025-12-05 14:27:04', 'Motivo: Ajuste de categoría - Cambios: Código: \'MON-0001\' -> \'PRT-0004\'.');
 
 -- --------------------------------------------------------
 
@@ -274,8 +301,12 @@ INSERT INTO `rolespermisos` (`id`, `idRol`, `idPermiso`) VALUES
 (191, 2, 37),
 (12, 3, 5),
 (11, 3, 7),
-(15, 4, 1),
-(14, 4, 5);
+(194, 4, 1),
+(195, 4, 5),
+(198, 4, 32),
+(197, 4, 33),
+(196, 4, 34),
+(199, 4, 35);
 
 -- --------------------------------------------------------
 
@@ -409,13 +440,13 @@ ALTER TABLE `empleados`
 -- AUTO_INCREMENT de la tabla `equipos`
 --
 ALTER TABLE `equipos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientos_equipos`
 --
 ALTER TABLE `movimientos_equipos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos`
@@ -433,7 +464,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT de la tabla `rolespermisos`
 --
 ALTER TABLE `rolespermisos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=192;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=200;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
